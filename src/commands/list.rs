@@ -14,26 +14,30 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
                 .collect();
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
-
-            for (i, line_chapter) in chapters.iter().enumerate() {
-                println!("{}: {}", i+1, line_chapter.chapter.manga_title);
-                if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
-                    dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num)
-                } else {
-                    dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num)
-                }
-                println!("###################################");
-            }
-            dark_yellow!("Please enter the number of the manga you want to read to open it in the brower : ");
-            let selected_chapter_index: usize = read!();
-            match chapters.get(selected_chapter_index) {
-                Some(chapter_last) => {
-                    if open::that(&chapter_last.chapter.url).is_err() {
-                        eprintln!("Error while opening the URL.");
+            if chapters.len() > 0 {
+                for (i, line_chapter) in chapters.iter().enumerate() {
+                    println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                    if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
+                        dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num)
+                    } else {
+                        dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num)
                     }
-                },
-                None => eprintln!("The index you've given is out of range.")
+                    println!("###################################");
+                }
+                dark_yellow!("Please enter the number of the manga you want to read to open it in the brower : ");
+                let selected_chapter_index: usize = read!();
+                match chapters.get(selected_chapter_index) {
+                    Some(chapter_last) => {
+                        if open::that(&chapter_last.chapter.url).is_err() {
+                            eprintln!("Error while opening the URL.");
+                        }
+                    },
+                    None => eprintln!("The index you've given is out of range.")
+                }
+            } else {
+                dark_red_ln!("No manga registered. Please use the add command.")
             }
+
 
         },
         Err(e) => println!("An error occured : {}", e)

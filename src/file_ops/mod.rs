@@ -3,13 +3,17 @@ use std::fs;
 use std::path::PathBuf;
 use csv::Writer;
 use std::fs::{OpenOptions};
+use std::env::{current_exe};
 use crate::models::CSVLine;
 
 fn extract_path_or_default(file_path: Option<PathBuf>) -> PathBuf {
     if file_path.is_some() {
         file_path.unwrap()
     } else {
-        PathBuf::from("mangas.csv")
+        let mut exe = current_exe().unwrap();
+        exe.pop();
+        exe.push("mangas.csv");
+        exe
     }
 }
 pub fn read_csv(file_path: Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
