@@ -1,21 +1,40 @@
-mod file_reader;
-mod manga_chapters;
+mod commands;
+mod file_ops;
+mod models;
 mod scraper;
+#[macro_use]
+extern crate colour;
 
-use std::env;
-use crate::file_reader::read_urls;
-use crate::scraper::{download_page, scrape_page_for_last_chapter};
+use structopt::StructOpt;
+use std::path::PathBuf;
+use crate::commands::{list, init, add};
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
+struct Cli {
+    //The command can be list, add [url], remove [url], update [url/all] (coming soon)
+    //By default, it takes nothing to return the last chapters of the stored mangas.
+    #[structopt(default_value="list", help="Available commands: list, add [url], remove [url]")]
+    command: String,
+
+    //The URL to the manga to add / remove. Can be [all] in the case of update.
+    #[structopt(help="The URL to the manga page on manganelo.")]
+    url: Option<String>,
+
+    //A path is optional (used mainly for debug purposes), and indicates the file containing the URLs.
+    #[structopt(short = "p", long = "path", parse(from_os_str))]
+    path: Option<PathBuf>,
+}
 
 #[tokio::main]
 async fn main() {
-    let arguments: Vec<String> = env::args().collect();
-    let path = arguments.last();
-    let url_string = read_urls(path).expect("Error while reading content");
-    let urls: Vec<&str> = url_string.split("\n").collect();
-    let page_content = download_page(urls.first().unwrap()).await;
-    //println!("{:?}", page_content);
-    let chapter = scrape_page_for_last_chapter(page_content.unwrap());
-    println!("{:?}", chapter.title);
-    println!("{:?}", chapter.url);
-    println!("{:?}", chapter.num);
+    let args = Cli::from_args();
+    match args.command.as_str() {
+        "list" => list(args.path).await,
+        "init" => init(args.path),
+        "add" => add(args.path, args.url).await,
+        _ => println!("Argument out of range.")
+    }
+    return
+
 }
