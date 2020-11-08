@@ -1,39 +1,37 @@
+mod commands;
 mod file_reader;
 mod manga_chapters;
 mod scraper;
 
-use futures::future::try_join_all;
-use std::env;
-use crate::file_reader::read_urls;
-use crate::scraper::{find_last_chapter};
+use structopt::StructOpt;
+use std::path::PathBuf;
+use crate::commands::list;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
+struct Cli {
+    //The command can be list, add [url], remove [url], update [url/all] (coming soon)
+    //By default, it takes nothing to return the last chapters of the stored mangas.
+    #[structopt(default_value="list", help="Available commands: list, add [url], remove [url]")]
+    command: String,
+
+    //The URL to the manga to add / remove. Can be [all] in the case of update.
+    #[structopt(help="The URL to the manga page on manganelo.")]
+    url: Option<String>,
+
+    //A path is optional (used mainly for debug purposes), and indicates the file containing the URLs.
+    #[structopt(short = "p", long = "path", parse(from_os_str))]
+    path: Option<PathBuf>,
+}
 
 #[tokio::main]
 async fn main() {
-    let arguments: Vec<String> = env::args().collect();
-    let path = arguments.last();
-    let url_string = read_urls(path);
-
-    match url_string {
-        Ok(u) => {
-            let urls: Vec<&str> = u.split("\n").collect();
-
-            let mangas_futures: Vec<_> = urls
-                .iter()
-                .map(|url| find_last_chapter(url))
-                .collect();
-
-            let chapters = try_join_all(mangas_futures).await.unwrap();
-
-            for chapter in chapters {
-                println!("{:?}", chapter.manga_title);
-                println!("{:?}", chapter.url);
-                println!("{:?}", chapter.chapter_title);
-                println!("{:?}", chapter.num);
-                println!("###################################");
-            }
-        },
-        Err(e) => eprintln!("{:?}", e);
+    let args = Cli::from_args();
+    println!("{:?}", args);
+    match args.command.as_str() {
+        "list" => list(args.path).await,
+        _ => println!("Argument out of range.")
     }
-
+    return
 
 }
