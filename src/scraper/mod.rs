@@ -2,15 +2,13 @@ use reqwest;
 use scraper::{Html, Selector};
 use crate::manga_chapters::MangaChapter;
 
-pub async fn download_page(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let res = reqwest::get(url).await?;
-
-    let body = res.text().await?;
-    Ok(body)
+async fn download_page(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    Ok(reqwest::get(url).await?.text().await?)
 }
 
-pub fn scrape_page_for_last_chapter(page: String) -> MangaChapter {
+fn scrape_page_for_last_chapter(page: String) -> Result<MangaChapter, Box<dyn std::error::Error>> {
     let fragment = Html::parse_document(page.as_str());
+    let title_selector = Selector::parse("div.story-info-right").unwrap();
     let list_selector = Selector::parse("ul.row-content-chapter").unwrap();
     let item_selector = Selector::parse("li").unwrap();
     let link_selector = Selector::parse("a").unwrap();
@@ -23,18 +21,33 @@ pub fn scrape_page_for_last_chapter(page: String) -> MangaChapter {
         .select(& link_selector)
         .next().unwrap();
 
-    let title = last_chapter.value().attr("title").unwrap();
+    let manga_title: String = fragment
+        .select(& title_selector)
+        .next().unwrap()
+        .select(& Selector::parse("h1").unwrap())
+        .next().unwrap()
+        .inner_html();
+
+    let chapter_title = last_chapter.inner_html();
     let link = last_chapter.value().attr("href").unwrap();
     let chapter_number: f32 = link
         .split("_")
-        .last()
-        .unwrap()
-        .parse()
-        .unwrap();
+        .last().unwrap()
+        .parse()?;
 
-    MangaChapter {
+    Ok(MangaChapter {
+        manga_title,
         url: link.parse().unwrap(),
-        title: title.parse().unwrap(),
+        chapter_title,
         num: chapter_number
+    })
+}
+
+pub async fn find_last_chapter(manga_url: &str) -> Result<MangaChapter, Box<dyn std::error::Error>>  {
+    let page = download_page(manga_url).await;
+    if page.is_err() {
+        Err(page.err().unwrap())
+    } else {
+        scrape_page_for_last_chapter(page.unwrap())
     }
 }

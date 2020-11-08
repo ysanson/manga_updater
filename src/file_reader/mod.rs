@@ -9,8 +9,7 @@ pub fn read_urls(file_path: Option<& std::string::String>) -> Result<String, io:
     if file_path.is_some() {
         path = file_path.unwrap().to_string();
     }
-    let contents = fs::read_to_string(path)
-        .expect("Error reading the file");
+    let contents = fs::read_to_string(path)?;
 
     let filtered_content = contents
         .replace("\r", "");
