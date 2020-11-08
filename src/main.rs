@@ -1,11 +1,13 @@
 mod commands;
-mod file_reader;
-mod manga_chapters;
+mod file_ops;
+mod models;
 mod scraper;
+#[macro_use]
+extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use crate::commands::list;
+use crate::commands::{list, init, add};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
@@ -27,9 +29,10 @@ struct Cli {
 #[tokio::main]
 async fn main() {
     let args = Cli::from_args();
-    println!("{:?}", args);
     match args.command.as_str() {
         "list" => list(args.path).await,
+        "init" => init(args.path),
+        "add" => add(args.path, args.url).await,
         _ => println!("Argument out of range.")
     }
     return

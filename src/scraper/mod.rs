@@ -1,6 +1,6 @@
 use reqwest;
 use scraper::{Html, Selector};
-use crate::manga_chapters::MangaChapter;
+use crate::models::MangaChapter;
 
 async fn download_page(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     Ok(reqwest::get(url).await?.text().await?)
@@ -44,10 +44,8 @@ fn scrape_page_for_last_chapter(page: String) -> Result<MangaChapter, Box<dyn st
 }
 
 pub async fn find_last_chapter(manga_url: &str) -> Result<MangaChapter, Box<dyn std::error::Error>>  {
-    let page = download_page(manga_url).await;
-    if page.is_err() {
-        Err(page.err().unwrap())
-    } else {
-        scrape_page_for_last_chapter(page.unwrap())
+    match download_page(manga_url).await {
+        Ok(page) => scrape_page_for_last_chapter(page),
+        Err(e) => Err(e)
     }
 }
