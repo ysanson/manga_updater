@@ -44,7 +44,7 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
 
 pub fn create_file(file_path: Option<PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
-    let file = OpenOptions::new().append(true).open(path)?;
+    let file = OpenOptions::new().append(true).create(true).open(path)?;
     let mut wtr = Writer::from_writer(file);
     wtr.write_record(&["URL", "Last chapter"])?;
     wtr.flush()?;
