@@ -9,3 +9,7 @@ pub struct CSVLine {
     pub url: String,
     pub last_chapter_num: f32
 }
+pub struct LineChapter {
+    pub line: CSVLine,
+    pub chapter: MangaChapter
+}

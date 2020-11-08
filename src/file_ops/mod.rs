@@ -27,6 +27,18 @@ pub fn read_csv(file_path: Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
     Ok(lines)
 }
 
+pub fn update_csv(file_path: Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
+    let path = extract_path_or_default(file_path.clone());
+    create_file(file_path)?;
+    let file = OpenOptions::new().append(true).open(path)?;
+    let mut writer = Writer::from_writer(file);
+    for line in values {
+        writer.write_record(&[line.url, line.last_chapter_num.to_string()])?;
+    }
+    writer.flush()?;
+    Ok(())
+}
+
 pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io::Error> {
     let path = extract_path_or_default(file_path);
     let contents = fs::read_to_string(path)?;
@@ -44,8 +56,7 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
 
 pub fn create_file(file_path: Option<PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
-    let file = OpenOptions::new().append(true).open(path)?;
-    let mut wtr = Writer::from_writer(file);
+    let mut wtr = Writer::from_path(path)?;
     wtr.write_record(&["URL", "Last chapter"])?;
     wtr.flush()?;
     Ok(())

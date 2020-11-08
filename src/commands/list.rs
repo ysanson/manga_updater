@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use crate::file_ops::{read_csv};
 use crate::scraper::find_last_chapter;
 use futures::future::try_join_all;
-use crate::models::{CSVLine, MangaChapter};
+use crate::models::{CSVLine, LineChapter};
 use text_io::read;
 
 
@@ -15,12 +15,12 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
 
-            for (i, manga_last) in chapters.iter().enumerate() {
-                println!("{}: {}", i+1, manga_last.0.manga_title);
-                if manga_last.0.num > manga_last.1 {
-                    dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", manga_last.0.num, manga_last.0.chapter_title, manga_last.1)
+            for (i, line_chapter) in chapters.iter().enumerate() {
+                println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
+                    dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num)
                 } else {
-                    dark_red_ln!("No updates available (Currently on chapter #{})", manga_last.0.num)
+                    dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num)
                 }
                 println!("###################################");
             }
@@ -28,7 +28,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
             let selected_chapter_index: usize = read!();
             match chapters.get(selected_chapter_index) {
                 Some(chapter_last) => {
-                    if open::that(&chapter_last.0.url).is_err() {
+                    if open::that(&chapter_last.chapter.url).is_err() {
                         eprintln!("Error while opening the URL.");
                     }
                 },
@@ -40,7 +40,10 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
     }
 }
 
-async fn search_manga(manga: CSVLine) -> Result<(MangaChapter, f32), Box<dyn std::error::Error>> {
+async fn search_manga(manga: CSVLine) -> Result<LineChapter, Box<dyn std::error::Error>> {
     let chapter = find_last_chapter(manga.url.as_str()).await?;
-    Ok((chapter, manga.last_chapter_num))
+    Ok(LineChapter {
+        line: manga,
+        chapter
+    })
 }

@@ -7,7 +7,7 @@ extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use crate::commands::{list, init, add};
+use crate::commands::{list, init, add, update};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
@@ -33,6 +33,7 @@ async fn main() {
         "list" => list(args.path).await,
         "init" => init(args.path),
         "add" => add(args.path, args.url).await,
+        "update" => update(args.path, args.url).await,
         _ => println!("Argument out of range.")
     }
     return
