@@ -24,9 +24,9 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
                     }
                     println!("###################################");
                 }
-                dark_yellow!("Please enter the number of the manga you want to read to open it in the brower : ");
+                dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
                 let selected_chapter_index: usize = read!();
-                match chapters.get(selected_chapter_index) {
+                match chapters.get(selected_chapter_index-1) {
                     Some(chapter_last) => {
                         if open::that(&chapter_last.chapter.url).is_err() {
                             eprintln!("Error while opening the URL.");
