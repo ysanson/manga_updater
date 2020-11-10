@@ -14,16 +14,22 @@ use crate::commands::{list, init, add, update, export};
 struct Cli {
     //The command can be list, add [url], remove [url], update [url/all] (coming soon)
     //By default, it takes nothing to return the last chapters of the stored mangas.
-    #[structopt(default_value="list", help="Available commands: list, add [url], remove [url]")]
+    #[structopt(default_value="list", help="Available commands: list, add [url], remove [url], export [-e path]")]
     command: String,
 
     //The URL to the manga to add / remove. Can be [all] in the case of update.
-    #[structopt(help="The URL to the manga page on manganelo.")]
-    url: Option<String>,
+    #[structopt(help="The URL to the manga page on manganelo. Can be all for update")]
+    argument: Option<String>,
 
     //A path is optional (used mainly for debug purposes), and indicates the file containing the URLs.
-    #[structopt(short = "p", long = "path", parse(from_os_str))]
+    #[structopt(short = "p", long = "path", parse(from_os_str),
+    help="The path to the CSV file to use. Overrides default.")]
     path: Option<PathBuf>,
+
+    //The path to export the CSV file to, or import from.
+    #[structopt(short = "e", long = "external", parse(from_os_str),
+    help="The path to eexport/import a CSV file from the application.")]
+    external_file: Option<PathBuf>
 }
 
 #[tokio::main]
@@ -32,9 +38,9 @@ async fn main() {
     match args.command.as_str() {
         "list" => list(args.path).await,
         "init" => init(args.path),
-        "add" => add(args.path, args.url).await,
-        "update" => update(args.path, args.url).await,
-        "export" => export(None, args.path),
+        "add" => add(args.path, args.argument).await,
+        "update" => update(args.path, args.argument).await,
+        "export" => export(args.path, args.external_file),
         _ => println!("Argument out of range.")
     }
     return
