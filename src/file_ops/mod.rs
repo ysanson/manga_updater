@@ -2,7 +2,7 @@ use std::io;
 use std::fs;
 use std::path::PathBuf;
 use csv::Writer;
-use std::fs::{OpenOptions};
+use std::fs::{OpenOptions, File};
 use std::env::{current_exe};
 use crate::models::CSVLine;
 
@@ -64,4 +64,13 @@ pub fn create_file(file_path: Option<PathBuf>) -> Result<(), io::Error> {
     wtr.write_record(&["URL", "Last chapter"])?;
     wtr.flush()?;
     Ok(())
+}
+
+pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Result<&PathBuf, io::Error> {
+    let path = extract_path_or_default(origin_path);
+    out_path.push("mangas.csv");
+    let _ = File::create(&out_path)?;
+    println!("Path: {:?}", path);
+    fs::copy(path, &out_path)?;
+    Ok(out_path)
 }

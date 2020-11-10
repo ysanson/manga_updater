@@ -1,12 +1,14 @@
 mod list;
 mod add;
 mod update;
+mod export;
 
 use std::path::PathBuf;
 use crate::commands::list::list_chapters;
 use crate::commands::add::add_new_manga;
 use crate::file_ops::create_file;
 use crate::commands::update::update_chapters;
+use crate::commands::export::export_data;
 
 pub async fn list(file_path: Option<PathBuf>){
     list_chapters(file_path).await
@@ -35,5 +37,8 @@ pub async fn update(path: Option<PathBuf>, manga_url: Option<String>) {
             update_chapters(path, "all").await
         }
     }
+}
 
+pub fn export(original_path: Option<PathBuf>, to: Option<PathBuf>) {
+    export_data(original_path, to);
 }
