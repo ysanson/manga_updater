@@ -42,7 +42,7 @@ pub fn import_file(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool) 
 /// # Returns:
 /// A new Vec containing the old lines wih the new ones appended behind.
 fn find_new_lines(imported: Vec<CSVLine>, current: Vec<CSVLine>) -> Vec<CSVLine> {
-    let old_urls: Vec<_> = current.into_iter()
+    let old_urls: Vec<_> = current.clone().into_iter()
         .map(|line| line.url).collect();
     let filtered_import: Vec<CSVLine> = imported.into_iter()
         .filter(|line| old_urls.contains(&line.url)).collect();
