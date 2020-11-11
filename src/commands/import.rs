@@ -45,7 +45,7 @@ fn find_new_lines(imported: Vec<CSVLine>, current: Vec<CSVLine>) -> Vec<CSVLine>
     let old_urls: Vec<_> = current.clone().into_iter()
         .map(|line| line.url).collect();
     let filtered_import: Vec<CSVLine> = imported.into_iter()
-        .filter(|line| old_urls.contains(&line.url)).collect();
+        .filter(|line| !old_urls.contains(&line.url)).collect();
 
     let mut result = Vec::from(current);
     result.extend(filtered_import);
