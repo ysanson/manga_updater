@@ -9,6 +9,7 @@ use structopt::StructOpt;
 use std::path::PathBuf;
 use crate::commands::{list, init, add, update, export, import};
 
+/// The CLI struct to store the different commands and parameters used by the app.
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
 struct Cli {

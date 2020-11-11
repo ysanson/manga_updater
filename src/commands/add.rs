@@ -2,6 +2,13 @@ use crate::file_ops::{is_url_present, append_to_file};
 use std::path::PathBuf;
 use crate::scraper::find_last_chapter;
 
+/// Adds a new manga to the CSV file.
+/// If the manga is already present, an error message is shown.
+/// If the CSV file is not present,  another error message is shown.
+/// The function searches for the last chapter at the time, and adds it to the CSV with the URL.
+/// # Arguments:
+/// * `path`: the optional path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
+/// * `manga_url`: The Manganelo URL to the manga page.
 pub async fn add_new_manga(path: Option<PathBuf>,  manga_url: &str) {
     match is_url_present(path.clone(),manga_url) {
         Ok(is_present) => {
@@ -21,7 +28,7 @@ pub async fn add_new_manga(path: Option<PathBuf>,  manga_url: &str) {
             }
         }
         Err(_) => {
-            eprintln!("Error: the file is not present. Try running manga-updater init.")
+            eprintln!("Error: the file is not present. Try running manga-updater init or specify the path with -p.")
         }
     }
 

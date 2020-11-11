@@ -5,7 +5,14 @@ use futures::future::try_join_all;
 use crate::models::{CSVLine, LineChapter};
 use text_io::read;
 
-
+/// Lists all the mangas found in the CSV file, and prints them to the screen.
+/// For each manga, it searches for the most recent chapter, and compares it to the stored number:
+/// - If the retrieved number is higher, it notifies the user that a new chapter is available in green.
+/// - Otherwise, the user is told that there's no updates on this manga.
+/// After listing, the user is invited to press a number corresponding to the manga it wants to open.
+/// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
+/// # Argument:
+/// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
 pub async fn list_chapters(file_path: Option<PathBuf>) {
     match read_csv(&file_path) {
         Ok(lines) => {
@@ -44,6 +51,11 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
     }
 }
 
+/// Inner function for searching the last chapter of a manga.
+/// # Argument:
+/// * `manga`: The line to search the last chapter for.
+/// # Returns:
+/// A result containing a `LineChapter`, effectively a `CSVLine` and a `MangaChapter` combined.
 async fn search_manga(manga: CSVLine) -> Result<LineChapter, Box<dyn std::error::Error>> {
     let chapter = find_last_chapter(manga.url.as_str()).await?;
     Ok(LineChapter {

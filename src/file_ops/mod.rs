@@ -6,6 +6,14 @@ use std::fs::{OpenOptions};
 use std::env::{current_exe};
 use crate::models::CSVLine;
 
+/// Checks if the optional path is defined, and if so, returns it.
+/// If None, the default path will be returned instead.
+/// The default path is the executable's folder, with the name `manga.csv`.
+/// This means that by default, the CSV file containing the mangas will be stored alongside the executable.
+/// # Argument:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// # Returns:
+/// The path to the CSV file, be it custom or default.
 fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
     if file_path.is_some() {
         file_path.clone().unwrap()
@@ -16,6 +24,14 @@ fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
         exe
     }
 }
+
+/// Reads the CSV file and returns the lines stored inside.
+/// If the headers don't correspond to the normal ones, a panic is raised.
+/// This is meant as a protection against strange CSV files.
+/// # Argument:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// # Returns:
+/// A Vec containing the lines stored in the CSV.
 pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
     let path = extract_path_or_default(&file_path);
     let mut reader = csv::Reader::from_path(path)?;
@@ -36,6 +52,13 @@ pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> 
     Ok(lines)
 }
 
+/// Updates the CSV file. I effectively overwrites it wih the new data given in parameter.
+/// It's important to make sure the current lines are in the new data, as they will be overwritten!
+///# Arguments:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// * `values`: the lines to write in the new CSV.
+/// # Returns:
+/// Ok if everything went well.
 pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     create_file(file_path)?;
@@ -48,12 +71,27 @@ pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(
     Ok(())
 }
 
+/// Checks if the URL of a manga is already stored into the CSV.
+/// It doesn't need to check line by line: instead, it opens the file as a string and checks if any part of it matches.
+/// # Arguments:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// * `url`: The URl to check and match.
+/// # Returns:
+/// True if the URl has been found in the file's content, false otherwise.
 pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io::Error> {
     let path = extract_path_or_default(&file_path);
     let contents = fs::read_to_string(path)?;
     Ok(contents.contains(url))
 }
 
+/// Appends a new line to the end of the CSV file.
+/// Does not check if the line already exists (please refer to [is_url_present])
+///  # Arguments:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// * `url`: The URl to insert (first column).
+/// * `last_chapter`: The chapter to insert (second column)
+/// # Returns:
+/// Ok if everything went well.
 pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) -> Result<(), io::Error> {
     let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path)?;
@@ -63,6 +101,12 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
     Ok(())
 }
 
+/// Creates a new CSV file, along with the headers.
+/// The CSv is not customized in terms of separation and line endings.
+/// # Argument:
+/// * `file_path`: the optional file path, if a custom CSV location is used.
+/// # Returns:
+/// Ok if everything went well.
 pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     let mut wtr = Writer::from_path(path)?;
@@ -71,6 +115,14 @@ pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     Ok(())
 }
 
+/// Exports the file to a new location.
+/// The export path must be a folder, to which is appended /mangas.csv.
+/// The contents of the original file is then copied into it.
+/// # Arguments:
+/// * `origin_path`: the optional file path, if a custom CSV location is used.
+/// * `out_path`: the given export folder.
+/// # Returns:
+/// The newly created file's path.
 pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Result<&PathBuf, io::Error> {
     let path = extract_path_or_default(&origin_path);
     out_path.push("mangas.csv");
