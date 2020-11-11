@@ -5,7 +5,7 @@ use futures::future::try_join_all;
 use crate::models::{CSVLine};
 
 pub async fn update_chapters(path: Option<PathBuf>, url: &str) {
-    match read_csv(path.clone()) {
+    match read_csv(&path) {
         Ok(lines) => {
             if url.eq("all") {
                 let chapters_future: Vec<_> = lines.into_iter()
@@ -13,7 +13,7 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str) {
                     .collect();
 
                 let chapters = try_join_all(chapters_future).await.unwrap();
-                match update_csv(path, chapters) {
+                match update_csv(&path, chapters) {
                     Ok(_) => dark_green_ln!("All the mangas have been updated to their most recent chapter."),
                     Err(e) => eprintln!("{}", e)
                 }

@@ -7,7 +7,7 @@ extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use crate::commands::{list, init, add, update, export};
+use crate::commands::{list, init, add, update, export, import};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
@@ -28,8 +28,12 @@ struct Cli {
 
     //The path to export the CSV file to, or import from.
     #[structopt(short = "e", long = "external", parse(from_os_str),
-    help="The path to eexport/import a CSV file from the application.")]
-    external_file: Option<PathBuf>
+    help="The path to export/import a CSV file from the application.")]
+    external_file: Option<PathBuf>,
+
+    #[structopt(short="o", long="overwrite",
+    help="Specifies if the current database must be overwritten. Usable only with import command.")]
+    overwrite: bool
 }
 
 #[tokio::main]
@@ -41,7 +45,8 @@ async fn main() {
         "add" => add(args.path, args.argument).await,
         "update" => update(args.path, args.argument).await,
         "export" => export(args.path, args.external_file),
-        _ => println!("Argument out of range.")
+        "import" => import(args.external_file, args.path, args.overwrite),
+        _ => println!("Argument out of range. Try running --h or -h.")
     }
     return
 

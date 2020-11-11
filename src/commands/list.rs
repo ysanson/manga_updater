@@ -7,7 +7,7 @@ use text_io::read;
 
 
 pub async fn list_chapters(file_path: Option<PathBuf>) {
-    match read_csv(file_path) {
+    match read_csv(&file_path) {
         Ok(lines) => {
             let mangas_futures: Vec<_> = lines.into_iter()
                 .map(|line| search_manga(line))

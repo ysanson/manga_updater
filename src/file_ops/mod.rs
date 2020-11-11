@@ -6,9 +6,9 @@ use std::fs::{OpenOptions};
 use std::env::{current_exe};
 use crate::models::CSVLine;
 
-fn extract_path_or_default(file_path: Option<PathBuf>) -> PathBuf {
+fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
     if file_path.is_some() {
-        file_path.unwrap()
+        file_path.clone().unwrap()
     } else {
         let mut exe = current_exe().unwrap();
         exe.pop();
@@ -16,10 +16,15 @@ fn extract_path_or_default(file_path: Option<PathBuf>) -> PathBuf {
         exe
     }
 }
-pub fn read_csv(file_path: Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
-    let path = extract_path_or_default(file_path);
+pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
+    let path = extract_path_or_default(&file_path);
     let mut reader = csv::Reader::from_path(path)?;
     let mut lines: Vec<CSVLine> = Vec::new();
+    {
+        let headers = reader.headers()?;
+        assert!(headers.get(0).unwrap_or("").eq("URL"));
+        assert!(headers.get(1).unwrap_or("").eq("Last chapter"));
+    }
 
     for record in reader.records() {
         let rec = record?;
@@ -31,8 +36,8 @@ pub fn read_csv(file_path: Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> {
     Ok(lines)
 }
 
-pub fn update_csv(file_path: Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
-    let path = extract_path_or_default(file_path.clone());
+pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
+    let path = extract_path_or_default(file_path);
     create_file(file_path)?;
     let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
@@ -44,13 +49,13 @@ pub fn update_csv(file_path: Option<PathBuf>, values: Vec<CSVLine>) -> Result<()
 }
 
 pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io::Error> {
-    let path = extract_path_or_default(file_path);
+    let path = extract_path_or_default(&file_path);
     let contents = fs::read_to_string(path)?;
     Ok(contents.contains(url))
 }
 
 pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) -> Result<(), io::Error> {
-    let path = extract_path_or_default(file_path);
+    let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
     writer.write_record(&[url, last_chapter.to_string().as_str()])?;
@@ -58,7 +63,7 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
     Ok(())
 }
 
-pub fn create_file(file_path: Option<PathBuf>) -> Result<(), io::Error> {
+pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     let mut wtr = Writer::from_path(path)?;
     wtr.write_record(&["URL", "Last chapter"])?;
@@ -67,7 +72,7 @@ pub fn create_file(file_path: Option<PathBuf>) -> Result<(), io::Error> {
 }
 
 pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Result<&PathBuf, io::Error> {
-    let path = extract_path_or_default(origin_path);
+    let path = extract_path_or_default(&origin_path);
     out_path.push("mangas.csv");
     fs::copy(path, &out_path)?;
     Ok(out_path)
