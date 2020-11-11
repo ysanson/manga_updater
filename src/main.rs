@@ -14,7 +14,8 @@ use crate::commands::{list, init, add, update, export, import};
 struct Cli {
     //The command can be list, add [url], remove [url], update [url/all] (coming soon)
     //By default, it takes nothing to return the last chapters of the stored mangas.
-    #[structopt(default_value="list", help="Available commands: list, add [url], remove [url], export [-e path]")]
+    #[structopt(default_value="list",
+    help="Available commands: list, add [url], remove [url], export [-e path]. For more info, refer to the doc.")]
     command: String,
 
     //The URL to the manga to add / remove. Can be [all] in the case of update.
@@ -36,6 +37,8 @@ struct Cli {
     overwrite: bool
 }
 
+/// Entry point of the application.
+/// Matches the argument given at the start, and redirect to the correct command.
 #[tokio::main]
 async fn main() {
     let args = Cli::from_args();
