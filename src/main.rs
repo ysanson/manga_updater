@@ -35,7 +35,10 @@ struct Cli {
 
     #[structopt(short="o", long="overwrite",
     help="Specifies if the current database must be overwritten. Usable only with import command.")]
-    overwrite: bool
+    overwrite: bool,
+
+    #[structopt(short="n", long="new", help="Display only new chapters.")]
+    new: bool
 }
 
 /// Entry point of the application.
@@ -44,7 +47,7 @@ struct Cli {
 async fn main() {
     let args = Cli::from_args();
     match args.command.as_str() {
-        "list" => list(args.path).await,
+        "list" => list(args.path, args.new).await,
         "init" => init(args.path),
         "add" => add(args.path, args.argument).await,
         "update" => update(args.path, args.argument).await,

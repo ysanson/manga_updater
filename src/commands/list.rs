@@ -13,7 +13,7 @@ use text_io::read;
 /// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
 /// # Argument:
 /// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
-pub async fn list_chapters(file_path: Option<PathBuf>) {
+pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool) {
     match read_csv(&file_path) {
         Ok(lines) => {
             let mangas_futures: Vec<_> = lines.into_iter()
@@ -22,24 +22,32 @@ pub async fn list_chapters(file_path: Option<PathBuf>) {
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
             if chapters.len() > 0 {
+                let mut has_new = false;
                 for (i, line_chapter) in chapters.iter().enumerate() {
-                    println!("{}: {}", i+1, line_chapter.chapter.manga_title);
                     if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
-                        dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num)
-                    } else {
-                        dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num)
+                        println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                        has_new = true;
+                        dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num);
+                        println!("###################################");
+                    } else if !only_new {
+                        println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                        dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num);
+                        println!("###################################");
                     }
-                    println!("###################################");
                 }
-                dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
-                let selected_chapter_index: usize = read!();
-                match chapters.get(selected_chapter_index-1) {
-                    Some(chapter_last) => {
-                        if open::that(&chapter_last.chapter.url).is_err() {
-                            eprintln!("Error while opening the URL.");
-                        }
-                    },
-                    None => eprintln!("The index you've given is out of range.")
+                if has_new {
+                    dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
+                    let selected_chapter_index: usize = read!();
+                    match chapters.get(selected_chapter_index - 1) {
+                        Some(chapter_last) => {
+                            if open::that(&chapter_last.chapter.url).is_err() {
+                                eprintln!("Error while opening the URL.");
+                            }
+                        },
+                        None => eprintln!("The index you've given is out of range.")
+                    }
+                } else {
+                    println!("Nothing new, sadly.")
                 }
             } else {
                 dark_red_ln!("No manga registered. Please use the add command.")

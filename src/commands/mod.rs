@@ -21,8 +21,8 @@ use crate::commands::import::import_file;
 /// Passes the logic to the list mod.
 /// # Argument
 /// * `file_path`: the optional path to the CSV file.
-pub async fn list(file_path: Option<PathBuf>){
-    list_chapters(file_path).await
+pub async fn list(file_path: Option<PathBuf>, only_new: bool){
+    list_chapters(file_path, only_new).await
 }
 
 /// Adds the manga to the database.
