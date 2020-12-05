@@ -2,45 +2,72 @@ use std::path::PathBuf;
 use crate::file_ops::{read_csv};
 use crate::scraper::find_last_chapter;
 use futures::future::try_join_all;
-use crate::models::{CSVLine, MangaChapter};
+use crate::models::{CSVLine, LineChapter};
 use text_io::read;
 
-
-pub async fn list_chapters(file_path: Option<PathBuf>) {
-    match read_csv(file_path) {
+/// Lists all the mangas found in the CSV file, and prints them to the screen.
+/// For each manga, it searches for the most recent chapter, and compares it to the stored number:
+/// - If the retrieved number is higher, it notifies the user that a new chapter is available in green.
+/// - Otherwise, the user is told that there's no updates on this manga.
+/// After listing, the user is invited to press a number corresponding to the manga it wants to open.
+/// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
+/// # Argument:
+/// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
+pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool) {
+    match read_csv(&file_path) {
         Ok(lines) => {
             let mangas_futures: Vec<_> = lines.into_iter()
                 .map(|line| search_manga(line))
                 .collect();
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
-
-            for (i, manga_last) in chapters.iter().enumerate() {
-                println!("{}: {}", i+1, manga_last.0.manga_title);
-                if manga_last.0.num > manga_last.1 {
-                    dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", manga_last.0.num, manga_last.0.chapter_title, manga_last.1)
-                } else {
-                    dark_red_ln!("No updates available (Currently on chapter #{})", manga_last.0.num)
-                }
-                println!("###################################");
-            }
-            dark_yellow!("Please enter the number of the manga you want to read to open it in the brower : ");
-            let selected_chapter_index: usize = read!();
-            match chapters.get(selected_chapter_index) {
-                Some(chapter_last) => {
-                    if open::that(&chapter_last.0.url).is_err() {
-                        eprintln!("Error while opening the URL.");
+            if chapters.len() > 0 {
+                let mut has_new = false;
+                for (i, line_chapter) in chapters.iter().enumerate() {
+                    if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
+                        println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                        has_new = true;
+                        dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num);
+                        println!("###################################");
+                    } else if !only_new {
+                        println!("{}: {}", i+1, line_chapter.chapter.manga_title);
+                        dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num);
+                        println!("###################################");
                     }
-                },
-                None => eprintln!("The index you've given is out of range.")
+                }
+                if has_new {
+                    dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
+                    let selected_chapter_index: usize = read!();
+                    match chapters.get(selected_chapter_index - 1) {
+                        Some(chapter_last) => {
+                            if open::that(&chapter_last.chapter.url).is_err() {
+                                eprintln!("Error while opening the URL.");
+                            }
+                        },
+                        None => eprintln!("The index you've given is out of range.")
+                    }
+                } else {
+                    println!("Nothing new, sadly.")
+                }
+            } else {
+                dark_red_ln!("No manga registered. Please use the add command.")
             }
+
 
         },
         Err(e) => println!("An error occured : {}", e)
     }
 }
 
-async fn search_manga(manga: CSVLine) -> Result<(MangaChapter, f32), Box<dyn std::error::Error>> {
+/// Inner function for searching the last chapter of a manga.
+/// # Argument:
+/// * `manga`: The line to search the last chapter for.
+/// # Returns:
+/// A result containing a `LineChapter`, effectively a `CSVLine` and a `MangaChapter` combined.
+async fn search_manga(manga: CSVLine) -> Result<LineChapter, Box<dyn std::error::Error>> {
     let chapter = find_last_chapter(manga.url.as_str()).await?;
-    Ok((chapter, manga.last_chapter_num))
+    Ok(LineChapter {
+        line: manga,
+        chapter
+    })
 }
