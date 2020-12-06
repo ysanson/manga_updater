@@ -5,6 +5,7 @@ use csv::Writer;
 use std::fs::{OpenOptions};
 use std::env::{current_exe};
 use crate::models::CSVLine;
+use serial_test::serial;
 
 /// Checks if the optional path is defined, and if so, returns it.
 /// If None, the default path will be returned instead.
@@ -50,6 +51,25 @@ pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> 
         })
     }
     Ok(lines)
+}
+
+#[test]
+#[serial]
+fn test_read_csv() -> Result<(), io::Error> {
+    let path = PathBuf::from("mangas.csv");
+    create_file(&Some(path.clone()))?;
+    let mut to_insert: Vec<CSVLine> = Vec::new();
+    to_insert.push(CSVLine {
+        url: "url1".to_string(),
+        last_chapter_num: 0.0
+    });
+    update_csv(&Some(path.clone()), to_insert)?;
+    let inserted = read_csv(&Some(path.clone()))?;
+    assert_eq!(inserted.len(), 1);
+    assert_eq!(inserted.get(0).unwrap().url, "url1");
+    assert_eq!(inserted.get(0).unwrap().last_chapter_num, 0.0);
+    fs::remove_file("mangas.csv")?;
+    Ok(())
 }
 
 /// Updates the CSV file. I effectively overwrites it wih the new data given in parameter.
@@ -131,6 +151,7 @@ pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Resu
 }
 
 #[test]
+#[serial]
 fn test_export_file() -> Result<(), io::Error> {
     let path = PathBuf::from("mangas.csv");
     create_file(&Some(path.clone()))?;
