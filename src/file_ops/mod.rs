@@ -5,6 +5,7 @@ use csv::Writer;
 use std::fs::{OpenOptions};
 use std::env::{current_exe};
 use crate::models::CSVLine;
+#[cfg(test)]
 use serial_test::serial;
 
 /// Checks if the optional path is defined, and if so, returns it.
@@ -53,6 +54,7 @@ pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> 
     Ok(lines)
 }
 
+#[cfg(test)]
 #[test]
 #[serial]
 fn test_read_csv() -> Result<(), io::Error> {
@@ -121,6 +123,7 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
     Ok(())
 }
 
+#[cfg(test)]
 #[test]
 #[serial]
 fn test_append_to_file() -> Result<(), io::Error> {
@@ -149,6 +152,7 @@ pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     Ok(())
 }
 
+#[cfg(test)]
 #[test]
 #[serial]
 fn test_create_file() -> Result<(), io::Error> {
@@ -176,6 +180,7 @@ pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Resu
     Ok(out_path)
 }
 
+#[cfg(test)]
 #[test]
 #[serial]
 fn test_export_file() -> Result<(), io::Error> {
