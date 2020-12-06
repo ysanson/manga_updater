@@ -129,3 +129,28 @@ pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Resu
     fs::copy(path, &out_path)?;
     Ok(out_path)
 }
+
+#[test]
+fn test_export_file() -> Result<(), io::Error> {
+    let path = PathBuf::from("mangas.csv");
+    create_file(&Some(path.clone()))?;
+    let mut new_lines: Vec<CSVLine> = Vec::new();
+    new_lines.push(CSVLine {
+        url: "url1".to_string(),
+        last_chapter_num: 0.0
+    });
+    update_csv(&Some(path.clone()), new_lines)?;
+    assert!(path.exists());
+
+    let mut temp_folder = PathBuf::from("testDir");
+    fs::create_dir(temp_folder.clone())?;
+    export_file(Some(path), &mut temp_folder)?;
+    assert!(temp_folder.exists());
+    let new_file_contents = read_csv(&Some(temp_folder))?;
+    assert_eq!(new_file_contents.len(), 1);
+    assert_eq!(new_file_contents.get(0).unwrap().url, "url1");
+    fs::remove_file("mangas.csv")?;
+    fs::remove_file("testDir/mangas.csv")?;
+    fs::remove_dir("testDir")?;
+    Ok(())
+}
