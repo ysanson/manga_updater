@@ -121,6 +121,20 @@ pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) 
     Ok(())
 }
 
+#[test]
+#[serial]
+fn test_append_to_file() -> Result<(), io::Error> {
+    let path = PathBuf::from("mangas.csv");
+    create_file(&Some(path.clone()))?;
+    append_to_file(Some(path.clone()), "url1", 0.0)?;
+    let contents = read_csv(&Some(path))?;
+    assert_eq!(contents.len(), 1);
+    assert_eq!(contents.get(0).unwrap().url, "url1");
+    assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0);
+    fs::remove_file("mangas.csv")?;
+    Ok(())
+}
+
 /// Creates a new CSV file, along with the headers.
 /// The CSv is not customized in terms of separation and line endings.
 /// # Argument:
@@ -132,6 +146,18 @@ pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     let mut wtr = Writer::from_path(path)?;
     wtr.write_record(&["URL", "Last chapter"])?;
     wtr.flush()?;
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn test_create_file() -> Result<(), io::Error> {
+    let path = PathBuf::from("mangas.csv");
+    create_file(&Some(path.clone()))?;
+    assert!(path.exists());
+    let contents = fs::read_to_string(&path)?;
+    assert!(contents.starts_with("URL,Last chapter"));
+    fs::remove_file(path)?;
     Ok(())
 }
 
