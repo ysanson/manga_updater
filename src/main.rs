@@ -2,6 +2,7 @@ mod commands;
 mod file_ops;
 mod models;
 mod scraper;
+mod utils;
 #[macro_use]
 extern crate colour;
 
