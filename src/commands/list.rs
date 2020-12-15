@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 use crate::file_ops::{read_csv};
-use crate::scraper::find_last_chapter;
+use crate::scraper::{find_last_chapter, create_client};
 use futures::future::try_join_all;
 use crate::models::{CSVLine, LineChapter};
 use text_io::read;
+use reqwest::Client;
 
 /// Lists all the mangas found in the CSV file, and prints them to the screen.
 /// For each manga, it searches for the most recent chapter, and compares it to the stored number:
@@ -16,8 +17,9 @@ use text_io::read;
 pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool) {
     match read_csv(&file_path) {
         Ok(lines) => {
+            let client = create_client().unwrap();
             let mangas_futures: Vec<_> = lines.into_iter()
-                .map(|line| search_manga(line))
+                .map(|line| search_manga(line, &client))
                 .collect();
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
@@ -62,10 +64,11 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool) {
 /// Inner function for searching the last chapter of a manga.
 /// # Argument:
 /// * `manga`: The line to search the last chapter for.
+/// * `client`: the client to make connections with.
 /// # Returns:
 /// A result containing a `LineChapter`, effectively a `CSVLine` and a `MangaChapter` combined.
-async fn search_manga(manga: CSVLine) -> Result<LineChapter, Box<dyn std::error::Error>> {
-    let chapter = find_last_chapter(manga.url.as_str()).await?;
+async fn search_manga(manga: CSVLine, client: &Client) -> Result<LineChapter, Box<dyn std::error::Error>> {
+    let chapter = find_last_chapter(manga.url.as_str(), Some(&client)).await?;
     Ok(LineChapter {
         line: manga,
         chapter
