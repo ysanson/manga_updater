@@ -1,10 +1,10 @@
-use std::io;
-use std::fs;
-use std::path::PathBuf;
-use csv::Writer;
-use std::fs::{OpenOptions};
-use std::env::{current_exe};
 use crate::models::CSVLine;
+use csv::Writer;
+use std::env::current_exe;
+use std::fs;
+use std::fs::OpenOptions;
+use std::io;
+use std::path::PathBuf;
 
 /// Checks if the optional path is defined, and if so, returns it.
 /// If None, the default path will be returned instead.
@@ -46,7 +46,7 @@ pub fn read_csv(file_path: &Option<PathBuf>) -> Result<Vec<CSVLine>, io::Error> 
         let rec = record?;
         lines.push(CSVLine {
             url: String::from(rec.get(0).unwrap()),
-            last_chapter_num: rec.get(1).unwrap().parse().unwrap()
+            last_chapter_num: rec.get(1).unwrap().parse().unwrap(),
         })
     }
     Ok(lines)
@@ -92,7 +92,11 @@ pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io:
 /// * `last_chapter`: The chapter to insert (second column)
 /// # Returns:
 /// Ok if everything went well.
-pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) -> Result<(), io::Error> {
+pub fn append_to_file(
+    file_path: Option<PathBuf>,
+    url: &str,
+    last_chapter: f32,
+) -> Result<(), io::Error> {
     let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
@@ -123,9 +127,89 @@ pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
 /// * `out_path`: the given export folder.
 /// # Returns:
 /// The newly created file's path.
-pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf) -> Result<&PathBuf, io::Error> {
+pub fn export_file(
+    origin_path: Option<PathBuf>,
+    out_path: &mut PathBuf,
+) -> Result<&PathBuf, io::Error> {
     let path = extract_path_or_default(&origin_path);
     out_path.push("mangas.csv");
     fs::copy(path, &out_path)?;
     Ok(out_path)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+
+    #[test]
+    #[serial]
+    fn test_read_csv() -> Result<(), io::Error> {
+        let path = PathBuf::from("mangas.csv");
+        create_file(&Some(path.clone()))?;
+        let mut to_insert: Vec<CSVLine> = Vec::new();
+        to_insert.push(CSVLine {
+            url: "url1".to_string(),
+            last_chapter_num: 0.0,
+        });
+        update_csv(&Some(path.clone()), to_insert)?;
+        let inserted = read_csv(&Some(path.clone()))?;
+        assert_eq!(inserted.len(), 1);
+        assert_eq!(inserted.get(0).unwrap().url, "url1");
+        assert_eq!(inserted.get(0).unwrap().last_chapter_num, 0.0);
+        fs::remove_file("mangas.csv")?;
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn test_append_to_file() -> Result<(), io::Error> {
+        let path = PathBuf::from("mangas.csv");
+        create_file(&Some(path.clone()))?;
+        append_to_file(Some(path.clone()), "url1", 0.0)?;
+        let contents = read_csv(&Some(path))?;
+        assert_eq!(contents.len(), 1);
+        assert_eq!(contents.get(0).unwrap().url, "url1");
+        assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0);
+        fs::remove_file("mangas.csv")?;
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn test_create_file() -> Result<(), io::Error> {
+        let path = PathBuf::from("mangas.csv");
+        create_file(&Some(path.clone()))?;
+        assert!(path.exists());
+        let contents = fs::read_to_string(&path)?;
+        assert!(contents.starts_with("URL,Last chapter"));
+        fs::remove_file(path)?;
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn test_export_file() -> Result<(), io::Error> {
+        let path = PathBuf::from("mangas.csv");
+        create_file(&Some(path.clone()))?;
+        let mut new_lines: Vec<CSVLine> = Vec::new();
+        new_lines.push(CSVLine {
+            url: "url1".to_string(),
+            last_chapter_num: 0.0,
+        });
+        update_csv(&Some(path.clone()), new_lines)?;
+        assert!(path.exists());
+
+        let mut temp_folder = PathBuf::from("testDir");
+        fs::create_dir(temp_folder.clone())?;
+        export_file(Some(path), &mut temp_folder)?;
+        assert!(temp_folder.exists());
+        let new_file_contents = read_csv(&Some(temp_folder))?;
+        assert_eq!(new_file_contents.len(), 1);
+        assert_eq!(new_file_contents.get(0).unwrap().url, "url1");
+        fs::remove_file("mangas.csv")?;
+        fs::remove_file("testDir/mangas.csv")?;
+        fs::remove_dir("testDir")?;
+        Ok(())
+    }
 }

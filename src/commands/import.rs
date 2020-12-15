@@ -51,3 +51,30 @@ fn find_new_lines(imported: Vec<CSVLine>, current: Vec<CSVLine>) -> Vec<CSVLine>
     result.extend(filtered_import);
     result
 }
+
+#[test]
+fn test_new_lines_found() {
+    let mut imported: Vec<CSVLine> = Vec::new();
+    imported.push(CSVLine {
+        url: "url1".to_string(),
+        last_chapter_num: 1.0
+    });
+    imported.push(CSVLine {
+        url: "url2".to_string(),
+        last_chapter_num: 2.0
+    });
+    let mut current : Vec<CSVLine> = Vec::new();
+    current.push(CSVLine {
+        url: "url1".to_string(),
+        last_chapter_num: 1.0
+    });
+    current.push(CSVLine {
+        url: "url3".to_string(),
+        last_chapter_num: 3.0
+    });
+    assert_eq!(imported.get(0), current.get(0));
+    let result = find_new_lines(imported.clone(), current.clone());
+    assert_eq!(result.get(0), current.get(0));
+    assert_eq!(result.get(1), current.get(1));
+    assert_eq!(result.get(2), imported.get(1));
+}
