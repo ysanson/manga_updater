@@ -12,17 +12,24 @@ use reqwest::Client;
 /// - Otherwise, the user is told that there's no updates on this manga.
 /// After listing, the user is invited to press a number corresponding to the manga it wants to open.
 /// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
-/// # Argument:
+/// # Arguments:
 /// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
-pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool) {
-    match read_csv(&file_path) {
+/// * `verbose`: if true, more messages will be shown.
+pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: bool) {
+    match read_csv(&file_path, &verbose) {
         Ok(lines) => {
             let client = create_client().unwrap();
+            if verbose {
+                println!("Fetching the pages for new chapters...");
+            }
             let mangas_futures: Vec<_> = lines.into_iter()
                 .map(|line| search_manga(line, &client))
                 .collect();
 
             let chapters = try_join_all(mangas_futures).await.unwrap();
+            if verbose {
+                println!("Collected {} chapters.", chapters.len());
+            }
             if chapters.len() > 0 {
                 let mut has_new = false;
                 for (i, line_chapter) in chapters.iter().enumerate() {

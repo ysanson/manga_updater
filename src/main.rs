@@ -17,7 +17,7 @@ struct Cli {
     //The command can be list, add [url], remove [url], update [url/all] (coming soon)
     //By default, it takes nothing to return the last chapters of the stored mangas.
     #[structopt(default_value="list",
-    help="Available commands: list, add [url], remove [url], export [-e path]. For more info, refer to the doc.")]
+    help="Available commands: list, add [url], remove [url], export [-e path], import [-e path], update [url/all]. For more info, refer to the doc.")]
     command: String,
 
     //The URL to the manga to add / remove. Can be [all] in the case of update.
@@ -39,7 +39,10 @@ struct Cli {
     overwrite: bool,
 
     #[structopt(short="n", long="new", help="Display only new chapters.")]
-    new: bool
+    new: bool,
+
+    #[structopt(short="v", long="verbose", help="Be more verbose about the process.")]
+    verbose: bool
 }
 
 /// Entry point of the application.
@@ -48,12 +51,12 @@ struct Cli {
 async fn main() {
     let args = Cli::from_args();
     match args.command.as_str() {
-        "list" => list(args.path, args.new).await,
+        "list" => list(args.path, args.new, args.verbose).await,
         "init" => init(args.path),
         "add" => add(args.path, args.argument).await,
-        "update" => update(args.path, args.argument).await,
+        "update" => update(args.path, args.argument, args.verbose).await,
         "export" => export(args.path, args.external_file),
-        "import" => import(args.external_file, args.path, args.overwrite),
+        "import" => import(args.external_file, args.path, args.overwrite, args.verbose),
         _ => println!("Argument out of range. Try running --h or -h.")
     }
     return

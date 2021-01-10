@@ -21,8 +21,8 @@ use crate::commands::import::import_file;
 /// Passes the logic to the list mod.
 /// # Argument
 /// * `file_path`: the optional path to the CSV file.
-pub async fn list(file_path: Option<PathBuf>, only_new: bool){
-    list_chapters(file_path, only_new).await
+pub async fn list(file_path: Option<PathBuf>, only_new: bool, verbose: bool){
+    list_chapters(file_path, only_new, verbose).await
 }
 
 /// Adds the manga to the database.
@@ -51,12 +51,12 @@ pub fn init(path: Option<PathBuf>) {
 /// # Argument
 /// * `file_path`: the optional path to the CSV file.
 /// * `manga_url`: the manga to update. If None, defaults to update all.
-pub async fn update(path: Option<PathBuf>, manga_url: Option<String>) {
+pub async fn update(path: Option<PathBuf>, manga_url: Option<String>, verbose: bool) {
     match manga_url {
-        Some(url) => update_chapters(path, url.as_str()).await,
+        Some(url) => update_chapters(path, url.as_str(), verbose).await,
         None => {
             println!("No URL provided. Defaults to all.");
-            update_chapters(path, "all").await
+            update_chapters(path, "all", verbose).await
         }
     }
 }
@@ -74,8 +74,8 @@ pub fn export(original_path: Option<PathBuf>, to: Option<PathBuf>) {
 /// * `from`: the optional path to the CSV file to import.
 /// * `to`: the optional path to the CSV file used by the program.
 /// * `overwrite`: if true, the destination file will be replaced.
-pub fn import(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool) {
-    match import_file(from, to, overwrite) {
+pub fn import(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool, verbose: bool) {
+    match import_file(from, to, overwrite, verbose) {
         Ok(imp) => if imp {println!("The file has been imported.")},
         Err(e) => eprintln!("Error while importing: {}", e)
     }

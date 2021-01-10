@@ -9,16 +9,23 @@ use reqwest::Client;
 /// # Arguments:
 /// * `path`: The path to the source file. If None, the default path will be used (See [file_ops::extract_path_or_default]).
 /// * `url`: The URl to the manga to update. It can also be _all_, as it will update every stored manga.
-pub async fn update_chapters(path: Option<PathBuf>, url: &str) {
-    match read_csv(&path) {
+/// * `verbose`: if true, more messages will be shown.
+pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
+    match read_csv(&path, &verbose) {
         Ok(lines) => {
             if url.eq("all") {
                 let client = create_client().unwrap();
+                if verbose {
+                    println!("Client created, fetching the chapters asynchronously...");
+                }
                 let chapters_future: Vec<_> = lines.into_iter()
                     .map(|line| search_update(line, &client))
                     .collect();
-
                 let chapters = try_join_all(chapters_future).await.unwrap();
+                if verbose {
+                    println!("{} chapters retrieved.", chapters.len());
+                }
+
                 match update_csv(&path, chapters) {
                     Ok(_) => dark_green_ln!("All the mangas have been updated to their most recent chapter."),
                     Err(e) => eprintln!("{}", e)
