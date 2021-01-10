@@ -27,7 +27,7 @@ pub fn import_file(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool, 
                 let current_lines = read_csv(&to, &verbose)?;
                 let update = find_new_lines(imported_lines, current_lines);
                 if verbose {
-                    println!("There are {} current lines. This will add {} new ones.", current_lines.len(), update.len());
+                    println!("This will add {} new lines to the CSV.", update.len());
                 }
                 update_csv(&to, update)?;
             }
