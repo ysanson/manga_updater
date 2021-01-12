@@ -8,6 +8,8 @@ mod update;
 mod export;
 /// Import command logic
 mod import;
+/// Remove command logic
+mod remove;
 
 use std::path::PathBuf;
 use crate::commands::list::list_chapters;
@@ -16,6 +18,7 @@ use crate::file_ops::create_file;
 use crate::commands::update::update_chapters;
 use crate::commands::export::export_data;
 use crate::commands::import::import_file;
+use crate::commands::remove::remove_manga;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
@@ -79,4 +82,21 @@ pub fn import(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool, verbo
         Ok(imp) => if imp {println!("The file has been imported.")},
         Err(e) => eprintln!("Error while importing: {}", e)
     }
+}
+
+/// Removes a line from the CSV file.
+/// # Arguments:
+/// * `path`: the optional path to where the CSV is located, if not the default location.
+/// * `url`: the manga to delete from the CSV.
+/// * `verbose`: if true, more messages will be shown.
+pub fn remove(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
+    match url {
+        None => println!("No URL provided. Please provide a manganelo URl or a line number to delete."),
+        Some(manga_url) => {
+            if let Err(e) = remove_manga(from, manga_url.as_str(), verbose) {
+                eprintln!("{}", e)
+            }
+        }
+    }
+
 }

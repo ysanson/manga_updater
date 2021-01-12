@@ -3,7 +3,7 @@ use crate::file_ops::{read_csv};
 use crate::scraper::{find_last_chapter, create_client};
 use futures::future::try_join_all;
 use crate::models::{CSVLine, LineChapter};
-use text_io::read;
+use text_io::try_read;
 use reqwest::Client;
 
 /// Lists all the mangas found in the CSV file, and prints them to the screen.
@@ -46,14 +46,16 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: 
                 }
                 if has_new {
                     dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
-                    let selected_chapter_index: usize = read!();
-                    match chapters.get(selected_chapter_index - 1) {
-                        Some(chapter_last) => {
-                            if open::that(&chapter_last.chapter.url).is_err() {
-                                eprintln!("Error while opening the URL.");
-                            }
-                        },
-                        None => eprintln!("The index you've given is out of range.")
+                    let res: Result<usize, _> = try_read!();
+                    if let Ok(selected_chapter_index) = res {
+                        match chapters.get(selected_chapter_index - 1) {
+                            Some(chapter_last) => {
+                                if open::that(&chapter_last.chapter.url).is_err() {
+                                    eprintln!("Error while opening the URL.");
+                                }
+                            },
+                            None => eprintln!("The index you've given is out of range.")
+                        }
                     }
                 } else {
                     println!("Nothing new, sadly.")
