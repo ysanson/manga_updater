@@ -10,6 +10,9 @@ mod export;
 mod import;
 /// Remove command logic
 mod remove;
+/// Open command logic
+mod open;
+
 
 use std::path::PathBuf;
 use crate::commands::list::list_chapters;
@@ -19,6 +22,7 @@ use crate::commands::update::update_chapters;
 use crate::commands::export::export_data;
 use crate::commands::import::import_file;
 use crate::commands::remove::remove_manga;
+use crate::commands::open::open_manga;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
@@ -98,5 +102,20 @@ pub fn remove(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
             }
         }
     }
+}
 
+/// Opens a manga in the browser.
+/// # Arguments:
+/// * `from`: the optional path to where the CSV is located, if not the default location.
+/// * `url`: the manga to open.
+/// * `direct`: if true, the last chapter from the manga will be open.
+/// * `verbose`: if true, more messages will be shown.
+pub async fn open(from: Option<PathBuf>, url: Option<String>, direct: bool, verbose: bool) {
+    match url {
+        None => {
+            println!("Usage: open [url/line chapter]. You can open a manga directly by entering the line number as shown with the list command.");
+            println!("Use -d to open the last chapter directly, otherwise, it will open the manga page.")
+        },
+        Some(manga_url) => open_manga(from, manga_url.as_str(), direct, verbose).await
+    }
 }

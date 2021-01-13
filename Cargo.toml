@@ -1,6 +1,6 @@
 [package]
 name = "manga_updater"
-version = "0.6.0"
+version = "0.6.5"
 authors = ["Yvan Sanson <sansonyvan@gmail.com>"]
 edition = "2018"
 
