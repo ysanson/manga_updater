@@ -10,6 +10,7 @@ use crate::utils::update_chapter_in_vec;
 /// # Arguments:
 /// * `path`: The path to the source file. If None, the default path will be used (See [file_ops::extract_path_or_default]).
 /// * `url`: The URl to the manga to update. It can also be _all_, as it will update every stored manga.
+/// It can also be a line number.
 /// * `verbose`: if true, more messages will be shown.
 pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
     match read_csv(&path, &verbose) {

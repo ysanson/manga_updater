@@ -5,6 +5,7 @@ use futures::future::try_join_all;
 use crate::models::{CSVLine, LineChapter};
 use text_io::try_read;
 use reqwest::Client;
+use crate::commands::update::update_chapters;
 
 /// Lists all the mangas found in the CSV file, and prints them to the screen.
 /// For each manga, it searches for the most recent chapter, and compares it to the stored number:
@@ -52,6 +53,8 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: 
                             Some(chapter_last) => {
                                 if open::that(&chapter_last.chapter.url).is_err() {
                                     eprintln!("Error while opening the URL.");
+                                } else {
+                                    update_chapters(file_path, selected_chapter_index.to_string().as_str(), verbose).await;
                                 }
                             },
                             None => eprintln!("The index you've given is out of range.")
@@ -66,7 +69,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: 
 
 
         },
-        Err(e) => println!("An error occured : {}", e)
+        Err(e) => println!("An error occurred : {}", e)
     }
 }
 
