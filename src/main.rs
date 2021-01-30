@@ -45,7 +45,10 @@ struct Cli {
     overwrite: bool,
 
     #[structopt(short="v", long="verbose", help="Be more verbose about the process.")]
-    verbose: bool
+    verbose: bool,
+
+    #[structopt(short = "u", long="no-update", help="Will not update the opened manga.")]
+    no_update: bool
 }
 
 /// Entry point of the application.
@@ -54,7 +57,7 @@ struct Cli {
 async fn main() {
     let args = Cli::from_args();
     match args.command.as_str() {
-        "list" => list(args.path, args.new, args.verbose).await,
+        "list" => list(args.path, args.new, args.no_update, args.verbose).await,
         "init" => init(args.path),
         "add" => add(args.path, args.argument).await,
         "update" => update(args.path, args.argument, args.verbose).await,

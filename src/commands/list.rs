@@ -15,8 +15,10 @@ use crate::commands::update::update_chapters;
 /// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
 /// # Arguments:
 /// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
+/// * `only_new`: will only display new chapters.
+/// * `no_update`: will not update the opened chapter.
 /// * `verbose`: if true, more messages will be shown.
-pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: bool) {
+pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update: bool, verbose: bool) {
     match read_csv(&file_path, &verbose) {
         Ok(lines) => {
             let client = create_client().unwrap();
@@ -53,7 +55,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: 
                             Some(chapter_last) => {
                                 if open::that(&chapter_last.chapter.url).is_err() {
                                     eprintln!("Error while opening the URL.");
-                                } else {
+                                } else if !no_update {
                                     update_chapters(file_path, selected_chapter_index.to_string().as_str(), verbose).await;
                                 }
                             },
@@ -66,8 +68,6 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, verbose: 
             } else {
                 dark_red_ln!("No manga registered. Please use the add command.")
             }
-
-
         },
         Err(e) => println!("An error occurred : {}", e)
     }

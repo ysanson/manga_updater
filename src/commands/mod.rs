@@ -28,8 +28,11 @@ use crate::commands::open::open_manga;
 /// Passes the logic to the list mod.
 /// # Argument
 /// * `file_path`: the optional path to the CSV file.
-pub async fn list(file_path: Option<PathBuf>, only_new: bool, verbose: bool){
-    list_chapters(file_path, only_new, verbose).await
+/// * `only_new`: will only display new chapters.
+/// * `no_update`: will not update the opened chapter.
+/// * `verbose`: if true, more messages will be shown.
+pub async fn list(file_path: Option<PathBuf>, only_new: bool, no_update: bool, verbose: bool){
+    list_chapters(file_path, only_new, no_update, verbose).await
 }
 
 /// Adds the manga to the database.
