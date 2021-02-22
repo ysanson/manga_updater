@@ -25,3 +25,25 @@ pub fn update_chapter_in_vec(original: Vec<CSVLine>, updated: CSVLine) -> Vec<CS
         .map(|elt| return if elt.url == updated.url { updated.clone() } else { elt } )
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_chapter_in_vec_test() {
+        let mut original: Vec<CSVLine> = Vec::new();
+        let line1 = CSVLine { url: "url1".to_string(), last_chapter_num: 0.0 };
+        let line2 = CSVLine { url: "url2".to_string(), last_chapter_num: 1.0 };
+        let line3 = CSVLine { url: "url3".to_string(), last_chapter_num: 2.0 };
+        let new_line2 = CSVLine { url: "url2".to_string(), last_chapter_num: 3.0 };
+        original.push(line1);
+        original.push(line2);
+        original.push(line3);
+        assert_eq!(original.get(1).unwrap().url, "url2");
+        assert_eq!(original.get(1).unwrap().last_chapter_num, 1.0);
+        let new_vec = update_chapter_in_vec(original, new_line2);
+        assert_eq!(new_vec.get(1).unwrap().url, "url2");
+        assert_eq!(new_vec.get(1).unwrap().last_chapter_num, 3.0);
+    }
+}
