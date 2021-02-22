@@ -2,15 +2,15 @@ use std::{error, fmt};
 use crate::models::CSVLine;
 
 #[derive(Debug, Clone)]
-pub struct NoSuchElementError;
+pub struct ScraperError;
 
-impl fmt::Display for NoSuchElementError {
+impl fmt::Display for ScraperError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "No element was found.")
+        write!(f, "An error occurred while scraping")
     }
 }
 
-impl error::Error for NoSuchElementError {}
+impl error::Error for ScraperError {}
 
 /// Updates a chapter in the original vec, and returns said vec.
 /// This is a functional-programming friendly version of mutating the element in the array, but it comes at a performance hit.

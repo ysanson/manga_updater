@@ -2,7 +2,7 @@ use reqwest;
 use scraper::{Html, Selector, ElementRef};
 use crate::models::MangaChapter;
 use std::error;
-use crate::utils::NoSuchElementError;
+use crate::utils::ScraperError;
 use reqwest::{Client, Error};
 
 /// Downloads the HTML contents of the URL given in parameter.
@@ -28,20 +28,20 @@ async fn download_page(url: &str, client: Option<&Client>) -> Result<String, Box
 /// An ElementRef pointing to the last chapter available.
 /// # Errors
 /// A custom NoSuchElementError is thrown if the function encountered a None value.
-fn extract_last_chapter_elt_ref(fragment: &Html) -> Result<ElementRef, NoSuchElementError> {
+fn extract_last_chapter_elt_ref(fragment: &Html) -> Result<ElementRef, ScraperError> {
     let list_selector = Selector::parse("ul.row-content-chapter").unwrap();
     let item_selector = Selector::parse("li").unwrap();
     let link_selector = Selector::parse("a").unwrap();
     fragment.select(& list_selector)
-        .next().ok_or(NoSuchElementError)
+        .next().ok_or(ScraperError)
         .and_then(|ls| {
             ls.select(& item_selector).next()
-                .ok_or(NoSuchElementError)
+                .ok_or(ScraperError)
         })
         .and_then(|is| {
             is.select(& link_selector)
                 .next()
-                .ok_or(NoSuchElementError)
+                .ok_or(ScraperError)
         })
 }
 
@@ -56,25 +56,28 @@ fn extract_last_chapter_elt_ref(fragment: &Html) -> Result<ElementRef, NoSuchEle
 /// * `page`: the String containing the page's HTML.
 /// # Returns
 /// A MangaChapter struct with the requested information listed above.
-fn scrape_page_for_last_chapter(page: String) -> Result<MangaChapter, Box<dyn error::Error>> {
+fn scrape_page_for_last_chapter(page: String) -> Result<MangaChapter, ScraperError> {
     let fragment = Html::parse_document(page.as_str());
     let title_selector = Selector::parse("div.story-info-right").unwrap();
 
     let last_chapter = extract_last_chapter_elt_ref(&fragment)?;
 
-    let manga_title: String = fragment
+    let manga_title = fragment
         .select(& title_selector)
-        .next().unwrap()
-        .select(& Selector::parse("h1").unwrap())
-        .next().unwrap()
+        .next().ok_or(ScraperError)
+        .and_then(|title| {
+            title.select(& Selector::parse("h1").unwrap())
+                .next().ok_or(ScraperError)
+        })?
         .inner_html();
 
     let chapter_title = last_chapter.inner_html();
     let link = last_chapter.value().attr("href").unwrap();
-    let chapter_number: f32 = link
+    let chapter_number = link
         .split("_")
-        .last().unwrap()
-        .parse()?;
+        .last().unwrap_or("0")
+        .parse::<f32>()
+        .unwrap_or(0f32);
 
     Ok(MangaChapter {
         manga_title,
@@ -89,12 +92,12 @@ fn scrape_page_for_last_chapter(page: String) -> Result<MangaChapter, Box<dyn er
 /// * `manga_url`: the URl of the manga to search for.
 /// # Returns:
 /// A MangaChapter with the requested information.
-pub async fn find_last_chapter(manga_url: &str, client: Option<&Client>) -> Result<MangaChapter, Box<dyn error::Error>>  {
+pub async fn find_last_chapter(manga_url: &str, client: Option<&Client>) -> Result<MangaChapter, ScraperError> {
     match download_page(manga_url, client).await {
         Ok(page) => scrape_page_for_last_chapter(page),
         Err(e) => {
             eprintln!("Error processing url {}: reason {:?}", manga_url, e);
-            Err(e)
+            Err(ScraperError)
         }
     }
 }
@@ -107,5 +110,42 @@ pub fn create_client() -> Result<Client, Error> {
     match builder.build() {
         Ok(client) => Ok(client),
         Err(e) => Err(e)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    #[test]
+    fn scrape_page_for_last_chapter_test() -> Result<(), Box<dyn error::Error>> {
+        let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        directory.push("tests_resources/testpage.html");
+        let page_contents: String = fs::read_to_string(directory)?;
+        match scrape_page_for_last_chapter(page_contents) {
+            Ok(chapter) => {
+                assert_eq!(chapter.url, "https://manganelo.com/chapter/xy925799/chapter_6");
+                assert_eq!(chapter.chapter_title, "Chapter 6");
+                assert_eq!(chapter.manga_title, "Rettou Gan No Tensei Majutsushi ~ Shiitage Rareta Saikyou No Minashigo Ga Isekai De Musou Suru");
+                assert_eq!(chapter.num, 6f32);
+                Ok(())
+            },
+            Err(_) => panic!("Cannot extract chapter")
+        }
+    }
+
+    #[test]
+    fn with_a_wrong_site_throws_error() -> Result<(), Box<dyn error::Error>> {
+        let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        directory.push("tests_resources/false_testpage.html");
+        let page_contents: String = fs::read_to_string(directory)?;
+        match scrape_page_for_last_chapter(page_contents) {
+            Ok(_) => panic!("The method should not return a value in this case"),
+            Err(_) => {
+                Ok(())
+            }
+        }
     }
 }
