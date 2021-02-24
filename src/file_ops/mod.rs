@@ -212,4 +212,21 @@ mod tests {
         fs::remove_dir("testDir")?;
         Ok(())
     }
+
+    #[test]
+    #[serial]
+    fn test_is_url_present() -> Result<(), io::Error> {
+        let path = PathBuf::from("mangas.csv");
+        create_file(&Some(path.clone()))?;
+        let mut new_lines: Vec<CSVLine> = Vec::new();
+        new_lines.push(CSVLine {
+            url: "url1".to_string(),
+            last_chapter_num: 0.0,
+        });
+        update_csv(&Some(path.clone()), new_lines)?;
+        assert!(path.exists());
+        let is_url_present = is_url_present(Some(path), "url1")?;
+        assert!(is_url_present);
+        Ok(())
+    }
 }
