@@ -34,9 +34,11 @@ struct Cli {
     help="The path to export/import a CSV file from the application.")]
     external_file: Option<PathBuf>,
 
+    //If set, opens the last chapter directly.
     #[structopt(short="d", long="direct", help="Open the last chapter directly.")]
     direct: bool,
 
+    //If set, displays only new chapters in the output.
     #[structopt(short="n", long="new", help="Display only new chapters.")]
     new: bool,
 
