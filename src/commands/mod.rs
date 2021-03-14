@@ -12,6 +12,8 @@ mod import;
 mod remove;
 /// Open command logic
 mod open;
+/// Unread command logic
+mod unread;
 
 
 use std::path::PathBuf;
@@ -23,6 +25,7 @@ use crate::commands::export::export_data;
 use crate::commands::import::import_file;
 use crate::commands::remove::remove_manga;
 use crate::commands::open::open_manga;
+use crate::commands::unread::unread_chapter;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
@@ -120,5 +123,12 @@ pub async fn open(from: Option<PathBuf>, url: Option<String>, direct: bool, verb
             println!("Use -d to open the last chapter directly, otherwise, it will open the manga page.")
         },
         Some(manga_url) => open_manga(from, manga_url.as_str(), direct, verbose).await
+    }
+}
+
+pub fn unread(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
+    match url {
+        None => println!("No number provided. Please provide a line number to reset."),
+        Some(line_number) => unread_chapter(from, line_number.as_str(), verbose)
     }
 }

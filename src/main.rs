@@ -8,7 +8,7 @@ extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use crate::commands::{list, init, add, update, export, import, remove, open};
+use crate::commands::{list, init, add, update, export, import, remove, open, unread};
 
 /// The CLI struct to store the different commands and parameters used by the app.
 #[derive(Debug, StructOpt)]
@@ -67,6 +67,7 @@ async fn main() {
         "import" => import(args.external_file, args.path, args.overwrite, args.verbose),
         "remove" => remove(args.path, args.argument, args.verbose),
         "open" => open(args.path, args.argument, args.direct, args.verbose).await,
+        "unread" => unread(args.path, args.argument, args.verbose),
         _ => println!("Argument out of range. Try running --h or -h.")
     }
     return
