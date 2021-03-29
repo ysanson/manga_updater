@@ -3,6 +3,7 @@ name = "manga_updater"
 version = "0.6.6"
 authors = ["Yvan Sanson <sansonyvan@gmail.com>"]
 edition = "2018"
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
