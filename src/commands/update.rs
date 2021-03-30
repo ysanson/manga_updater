@@ -21,7 +21,7 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                     println!("Client created, fetching the chapters asynchronously...");
                 }
                 let chapters_future: Vec<_> = lines.into_iter()
-                    .map(|line| search_update(line, Some(&client)))
+                    .map(|line| search_update(line, Some(&client), &verbose))
                     .collect();
                 let chapters = try_join_all(chapters_future).await.unwrap();
                 if verbose {
@@ -41,7 +41,7 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                         println!("Updating chapter at position {}", number - 1);
                     }
                     if let Some(line) = lines.get(number - 1) {
-                        let updated_line = search_update(line.clone(), None).await.unwrap();
+                        let updated_line = search_update(line.clone(), None, &verbose).await.unwrap();
                         if verbose {
                             println!("New chapter for {} is {} (stored is {})", line.url, updated_line.last_chapter_num, line.last_chapter_num);
                         }
@@ -68,8 +68,8 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
 /// * `Client`: a reference to a HTTP client, for sending the requests. If None, the default client of Reqwest will be used.
 /// # Returns:
 /// A new CSVLine, containing the previous URL and the new chapter number.
-async fn search_update(manga: CSVLine, client: Option<&Client>) -> Result<CSVLine, Box<dyn std::error::Error>> {
-    let chapter = find_last_chapter(manga.url.as_str(), client).await?;
+async fn search_update(manga: CSVLine, client: Option<&Client>, verbose: &bool) -> Result<CSVLine, Box<dyn std::error::Error>> {
+    let chapter = find_last_chapter(manga.url.as_str(), client, verbose).await?;
     Ok(CSVLine {
             url: manga.url,
             last_chapter_num: chapter.num

@@ -61,7 +61,7 @@ async fn main() {
     match args.command.as_str() {
         "list" => list(args.path, args.new, args.no_update, args.verbose).await,
         "init" => init(args.path),
-        "add" => add(args.path, args.argument).await,
+        "add" => add(args.path, args.argument, args.verbose).await,
         "update" => update(args.path, args.argument, args.verbose).await,
         "export" => export(args.path, args.external_file),
         "import" => import(args.external_file, args.path, args.overwrite, args.verbose),

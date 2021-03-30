@@ -42,9 +42,9 @@ pub async fn list(file_path: Option<PathBuf>, only_new: bool, no_update: bool, v
 /// # Arguments
 /// * `file_path`: the optional path to the CSV file.
 /// * `manga_url`: the manganelo URL of the manga to add.
-pub async fn add(path: Option<PathBuf>, manga_url: Option<String>) {
+pub async fn add(path: Option<PathBuf>, manga_url: Option<String>, verbose: bool) {
     match manga_url {
-        Some(url) => add_new_manga(path, url.as_str()).await,
+        Some(url) => add_new_manga(path, url.as_str(), verbose).await,
         None => println!("An URL is required to be added.")
     }
 

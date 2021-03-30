@@ -17,14 +17,14 @@ pub async fn open_manga(path: Option<PathBuf>, url: &str, direct: bool, verbose:
             }
             match url.parse::<usize>() {
                 Ok(position) => extract(lines.get(position - 1), direct,
-                                        "The line number is out of bounds, please try again (the list command may be helpful)").await,
+                                        "The line number is out of bounds, please try again (the list command may be helpful)", &verbose).await,
                 Err(_) => {
                     if verbose {
                         println!("Trying to open the manga based on its URL...");
                     }
                     let by_url = lines.into_iter()
                         .find(|elt| elt.url == url );
-                    extract(by_url.as_ref(), direct, "The URL you asked for is not present.").await
+                    extract(by_url.as_ref(), direct, "The URL you asked for is not present.", &verbose).await
                 }
             }
         },
@@ -38,11 +38,11 @@ pub async fn open_manga(path: Option<PathBuf>, url: &str, direct: bool, verbose:
 /// * `line`: the manga to open
 /// * `direct`: if true, the last chapter from the manga will be open.
 /// * `error_message`: the custom error message to show
-async fn extract(line: Option<&CSVLine>, direct: bool, error_message: &str) {
+async fn extract(line: Option<&CSVLine>, direct: bool, error_message: &str, verbose: &bool) {
     match line {
         Some(l) => {
             if direct {
-                match find_last_chapter(l.url.as_str(), None).await {
+                match find_last_chapter(l.url.as_str(), None, verbose).await {
                     Ok(manga) => open(manga.url.as_str()),
                     Err(e) => eprintln!("Error while fetching the last chapter: {}", e)
                 }

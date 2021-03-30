@@ -2,11 +2,13 @@ use std::{error, fmt};
 use crate::models::CSVLine;
 
 #[derive(Debug, Clone)]
-pub struct ScraperError;
+pub struct ScraperError {
+    pub reason: String,
+}
 
 impl fmt::Display for ScraperError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "An error occurred while scraping")
+        write!(f, "An error occurred while scraping: {}", &self.reason)
     }
 }
 
