@@ -79,14 +79,14 @@ fn scrape_page_for_last_chapter(page: String, verbose: bool) -> Result<MangaChap
         .next().ok_or(ScraperError { reason: "The manga title is unreachable.".to_string() })
         .and_then(|title| {
             title.select(& Selector::parse("h1").unwrap())
-                .next().ok_or(ScraperError { reason: "The manga title is unreachable.".to_string() })
+                .next().ok_or(ScraperError { reason: "The manga title cannot be parsed.".to_string() })
         })?
         .inner_html();
     if verbose {
         println!("Processing manga {}", manga_title);
     }
 
-    let last_chapter = extract_last_chapter_elt_ref(&fragment, verbose.clone())?;
+    let last_chapter = extract_last_chapter_elt_ref(&fragment, verbose)?;
 
     let chapter_title = last_chapter.inner_html();
     let link = last_chapter.value().attr("href").unwrap();
