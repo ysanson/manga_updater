@@ -71,15 +71,15 @@ fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<Elemen
 /// * `page`: the String containing the page's HTML.
 /// # Returns
 /// A MangaChapter struct with the requested information listed above.
-fn scrape_page_for_last_chapter(page: String, verbose: bool) -> Result<MangaChapter, ScraperError> {
+fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Result<MangaChapter, ScraperError> {
     let fragment = Html::parse_document(page.as_str());
     let title_selector = Selector::parse("div.story-info-right").unwrap();
     let manga_title = fragment
         .select(& title_selector)
-        .next().ok_or(ScraperError { reason: "The manga title is unreachable.".to_string() })
+        .next().ok_or(ScraperError { reason: format!("The title of the manga at URL {} cannot be found in the page.", url) })
         .and_then(|title| {
             title.select(& Selector::parse("h1").unwrap())
-                .next().ok_or(ScraperError { reason: "The manga title cannot be parsed.".to_string() })
+                .next().ok_or(ScraperError { reason: format!("The title of the manga at URL {} cannot be parsed.", url) })
         })?
         .inner_html();
     if verbose {
@@ -111,7 +111,7 @@ fn scrape_page_for_last_chapter(page: String, verbose: bool) -> Result<MangaChap
 /// A MangaChapter with the requested information.
 pub async fn find_last_chapter(manga_url: &str, client: Option<&Client>, verbose: &bool) -> Result<MangaChapter, ScraperError> {
     match download_page(manga_url, client).await {
-        Ok(page) => scrape_page_for_last_chapter(page, verbose.clone()),
+        Ok(page) => scrape_page_for_last_chapter(page, &manga_url, verbose.clone()),
         Err(e) => {
             eprintln!("Error processing url {}: reason {:?}", manga_url, e);
             Err(ScraperError { reason: e.to_string() })
@@ -141,7 +141,7 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents, true) {
+        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string() ,  true) {
             Ok(chapter) => {
                 assert_eq!(chapter.url, "https://manganelo.com/chapter/xy925799/chapter_6");
                 assert_eq!(chapter.chapter_title, "Chapter 6");
@@ -158,7 +158,7 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/false_testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents, true) {
+        match scrape_page_for_last_chapter(page_contents,&"Original title".to_string(), true) {
             Ok(_) => panic!("The method should not return a value in this case"),
             Err(_) => {
                 Ok(())

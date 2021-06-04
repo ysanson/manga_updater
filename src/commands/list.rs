@@ -6,6 +6,7 @@ use crate::models::{CSVLine, LineChapter};
 use text_io::try_read;
 use reqwest::Client;
 use crate::commands::update::update_chapters;
+use crate::utils::ScraperError;
 
 /// Lists all the mangas found in the CSV file, and prints them to the screen.
 /// For each manga, it searches for the most recent chapter, and compares it to the stored number:
@@ -57,7 +58,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
                         dark_red_ln!("No manga registered. Please use the add command.")
                     }
                 }
-                Err(e) => eprintln!("An error occurred during the chapter fetching.Try running with -v to see more precisely. The error is: {:?}", e)
+                Err(e) => eprintln!("An error occurred during the chapter fetching. Try running with -v to see more precisely. The error is: {}", e.reason)
             }
 
         },
@@ -71,7 +72,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
 /// * `client`: the client to make connections with.
 /// # Returns:
 /// A result containing a `LineChapter`, effectively a `CSVLine` and a `MangaChapter` combined.
-async fn search_manga(manga: CSVLine, client: &Client, verbose: &bool) -> Result<LineChapter, Box<dyn std::error::Error>> {
+async fn search_manga(manga: CSVLine, client: &Client, verbose: &bool) -> Result<LineChapter, ScraperError> {
     let chapter = find_last_chapter(manga.url.as_str(), Some(&client), verbose).await?;
     Ok(LineChapter {
         line: manga,
