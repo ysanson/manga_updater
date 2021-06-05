@@ -91,10 +91,10 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
     let chapter_title = last_chapter.inner_html();
     let link = last_chapter.value().attr("href").unwrap();
     let chapter_number = link
-        .split("_")
-        .last().unwrap_or("0")
+        .split("-")
+        .last().unwrap_or("3")
         .parse::<f32>()
-        .unwrap_or(0f32);
+        .unwrap_or(1f32);
 
     Ok(MangaChapter {
         manga_title,
