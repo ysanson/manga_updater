@@ -9,11 +9,11 @@ use crate::scraper::find_last_chapter;
 /// # Arguments:
 /// * `path`: the optional path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
 /// * `manga_url`: The Manganelo URL to the manga page.
-pub async fn add_new_manga(path: Option<PathBuf>,  manga_url: &str) {
+pub async fn add_new_manga(path: Option<PathBuf>,  manga_url: &str, verbose: bool) {
     match is_url_present(path.clone(),manga_url) {
         Ok(is_present) => {
             if !is_present {
-                match find_last_chapter(manga_url).await {
+                match find_last_chapter(manga_url, None, &verbose).await {
                     Ok(last_chapter) => {
                         match append_to_file(path, manga_url, last_chapter.num) {
                             Ok(_) => println!("The manga has been added."),
