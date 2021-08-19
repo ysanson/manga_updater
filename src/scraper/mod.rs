@@ -92,7 +92,7 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
     let link = last_chapter.value().attr("href").unwrap();
     let chapter_number = link
         .split("-")
-        .last().unwrap_or("3")
+        .last().unwrap_or("1")
         .parse::<f32>()
         .unwrap_or(1f32);
 
@@ -143,10 +143,10 @@ mod tests {
         let page_contents: String = fs::read_to_string(directory)?;
         match scrape_page_for_last_chapter(page_contents, &"Original title".to_string() ,  true) {
             Ok(chapter) => {
-                assert_eq!(chapter.url, "https://manganelo.com/chapter/xy925799/chapter_6");
-                assert_eq!(chapter.chapter_title, "Chapter 6");
-                assert_eq!(chapter.manga_title, "Rettou Gan No Tensei Majutsushi ~ Shiitage Rareta Saikyou No Minashigo Ga Isekai De Musou Suru");
-                assert_eq!(chapter.num, 6f32);
+                assert_eq!(chapter.url, "https://readmanganato.com/manga-qm951521/chapter-74");
+                assert_eq!(chapter.chapter_title, "Chapter 74");
+                assert_eq!(chapter.manga_title, "Mushoku Tensei - Isekai Ittara Honki Dasu");
+                assert_eq!(chapter.num, 74f32);
                 Ok(())
             },
             Err(_) => panic!("Cannot extract chapter")
