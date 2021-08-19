@@ -99,7 +99,11 @@ pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io:
 /// * `last_chapter`: The chapter to insert (second column)
 /// # Returns:
 /// Ok if everything went well.
-pub fn append_to_file(file_path: Option<PathBuf>, url: &str, last_chapter: f32) -> Result<(), io::Error> {
+pub fn append_to_file(
+    file_path: Option<PathBuf>,
+    url: &str,
+    last_chapter: f32,
+) -> Result<(), io::Error> {
     let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
