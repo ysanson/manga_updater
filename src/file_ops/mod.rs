@@ -1,9 +1,12 @@
+mod save;
+
 use crate::models::CSVLine;
 use csv::Writer;
 use std::env::current_exe;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io;
+use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 
 /// Checks if the optional path is defined, and if so, returns it.
@@ -14,7 +17,7 @@ use std::path::PathBuf;
 /// * `file_path`: the optional file path, if a custom CSV location is used.
 /// # Returns:
 /// The path to the CSV file, be it custom or default.
-fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
+pub fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
     if file_path.is_some() {
         file_path.clone().unwrap()
     } else {
@@ -134,7 +137,10 @@ pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
 /// * `out_path`: the given export folder.
 /// # Returns:
 /// The newly created file's path.
-pub fn export_file(origin_path: Option<PathBuf>, out_path: &mut PathBuf, ) -> Result<&PathBuf, io::Error> {
+pub fn export_file(
+    origin_path: Option<PathBuf>,
+    out_path: &mut PathBuf,
+) -> Result<&PathBuf, io::Error> {
     let path = extract_path_or_default(&origin_path);
     out_path.push("mangas.csv");
     fs::copy(path, &out_path)?;
@@ -231,6 +237,7 @@ mod tests {
         assert!(path.exists());
         let is_url_present = is_url_present(Some(path), "url1")?;
         assert!(is_url_present);
+        fs::remove_file("mangas.csv")?;
         Ok(())
     }
 }
