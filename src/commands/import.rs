@@ -1,14 +1,15 @@
 use std::path::PathBuf;
 use crate::models::CSVLine;
 use std::io;
-use crate::file_ops::{read_csv, update_csv};
+use crate::file_ops::read_csv;
+use crate::file_ops::write_file::update_csv;
 
 /// Imports a CSV file corresponding to the one used by the program.
 /// It can either overwrite or just append to the current file, depending on the `overwrite` parameter.
 /// If the file is not a correct format (ie not properly separated CSV, or if the columns don't match), a panic is raised.
 /// # Arguments:
 /// * `from`: the file to import from. If None, an error message is risen.
-/// * `to`: the file to copy to. If None, the default path will be used (See [file_ops::extract_path_or_default])
+/// * `to`: the file to copy to. If None, the default path will be used (See [`crate::file_ops::extract_path_or_default`])
 /// * `overwrite`: if true, the contents of the new file will replace the current one. If false, it will simply append missing lines.
 /// * `verbose`: if true, more output messages will be shown.
 /// # Returns:

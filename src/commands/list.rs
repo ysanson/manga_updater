@@ -15,7 +15,7 @@ use crate::utils::ScraperError;
 /// After listing, the user is invited to press a number corresponding to the manga it wants to open.
 /// If it corresponds to an actual manga, then the program will launch the browser with the chapter's URL.
 /// # Arguments:
-/// * `file_path`: The path to the CSV file. If None, the default path will be used (See [file_ops::extract_path_or_default])
+/// * `file_path`: The path to the CSV file. If None, the default path will be used (See [`crate::file_ops::extract_path_or_default`])
 /// * `only_new`: will only display new chapters.
 /// * `no_update`: will not update the opened chapter.
 /// * `verbose`: if true, more messages will be shown.
