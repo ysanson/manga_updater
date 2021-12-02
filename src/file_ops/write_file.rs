@@ -6,6 +6,7 @@ use std::io;
 use std::path::PathBuf;
 use csv::Writer;
 use crate::models::CSVLine;
+
 /// Updates the CSV file. I effectively overwrites it wih the new data given in parameter.
 /// It's important to make sure the current lines are in the new data, as they will be overwritten!
 ///# Arguments:
@@ -15,14 +16,14 @@ use crate::models::CSVLine;
 /// Ok if everything went well.
 pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
+    backup_file(Some(path.clone()))?;
     create_file(file_path)?;
-    let file = OpenOptions::new().append(true).open(path.clone())?;
+    let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
     for line in values {
         writer.write_record(&[line.url, line.last_chapter_num.to_string()])?;
     }
     writer.flush()?;
-    backup_file(Some(path))?;
     Ok(())
 }
 
@@ -42,9 +43,9 @@ pub fn append_to_file(
     let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path.clone())?;
     let mut writer = Writer::from_writer(file);
+    backup_file(Some(path))?;
     writer.write_record(&[url, last_chapter.to_string().as_str()])?;
     writer.flush()?;
-    backup_file(Some(path))?;
     Ok(())
 }
 
@@ -98,6 +99,7 @@ mod tests {
         assert_eq!(contents.get(0).unwrap().url, "url1");
         assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0);
         fs::remove_file("mangas.csv")?;
+        fs::remove_file("mangas.csv.bak")?;
         Ok(())
     }
 
@@ -134,6 +136,7 @@ mod tests {
         assert_eq!(new_file_contents.len(), 1);
         assert_eq!(new_file_contents.get(0).unwrap().url, "url1");
         fs::remove_file("mangas.csv")?;
+        fs::remove_file("mangas.csv.bak")?;
         fs::remove_file("testDir/mangas.csv")?;
         fs::remove_dir("testDir")?;
         Ok(())
