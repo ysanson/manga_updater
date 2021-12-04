@@ -15,7 +15,6 @@ It supports telling updates, adding new mangas, and updating the old ones.
 - `Import -e [path to file]`: Imports the specified file to the program's CSV. 
 - `Open [num]`: Opens the manganelo page of the manga. Combined with -d, opens directly the last chapter.
 - `Unread [num]`: Sets the last chapter number of a manga back one time. Useful if the manga has been updated in error.
-- `Undo`: Undoes the last write operation on the CSV (the updated mangas goes back to their last states). Only for new mangas and updated lines.
 
 Use `manga_updater -h` for a full list of available commands, options, along with their descriptions.
 
