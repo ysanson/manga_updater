@@ -8,7 +8,7 @@ extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use crate::commands::{list, init, add, update, export, import, remove, open, unread, undo};
+use crate::commands::{list, init, add, update, export, import, remove, open, unread};
 
 /// The CLI struct to store the different commands and parameters used by the app.
 #[derive(Debug, StructOpt)]
@@ -17,7 +17,7 @@ struct Cli {
     //The command can be list, add [url], remove [url], update [url/all] (coming soon)
     //By default, it takes nothing to return the last chapters of the stored mangas.
     #[structopt(default_value="list",
-    help="Available commands: list, add [url], remove [url], export [-e path], import [-e path], update [url/all], open [url/line number], restore. For more info, refer to the doc.")]
+    help="Available commands: list, add [url], remove [url], export [-e path], import [-e path], update [url/all], open [url/line number]. For more info, refer to the doc.")]
     command: String,
 
     //The URL to the manga to add / remove. Can be [all] in the case of update.
@@ -68,7 +68,6 @@ async fn main() {
         "remove" => remove(args.path, args.argument, args.verbose),
         "open" => open(args.path, args.argument, args.direct, args.verbose).await,
         "unread" => unread(args.path, args.argument, args.verbose),
-        "undo" => undo(args.path, args.verbose),
         _ => println!("Argument out of range. Try running --h or -h.")
     }
     return

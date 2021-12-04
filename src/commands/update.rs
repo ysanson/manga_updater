@@ -1,6 +1,5 @@
 use std::path::PathBuf;
-use crate::file_ops::{read_csv};
-use crate::file_ops::write_file::update_csv;
+use crate::file_ops::{read_csv, update_csv};
 use crate::scraper::{find_last_chapter, create_client};
 use futures::future::try_join_all;
 use crate::models::{CSVLine};
@@ -9,7 +8,7 @@ use crate::utils::update_chapter_in_vec;
 
 /// Updates the chapters of all stored manga or just a selected one.
 /// # Arguments:
-/// * `path`: The path to the source file. If None, the default path will be used (See [`crate::file_ops::extract_path_or_default`]).
+/// * `path`: The path to the source file. If None, the default path will be used (See [file_ops::extract_path_or_default]).
 /// * `url`: The URl to the manga to update. It can also be _all_, as it will update every stored manga.
 /// It can also be a line number.
 /// * `verbose`: if true, more messages will be shown.
