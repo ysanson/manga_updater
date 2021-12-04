@@ -15,7 +15,7 @@ mod open;
 /// Unread command logic
 mod unread;
 /// Restore command logic
-mod restore;
+mod undo;
 
 use std::path::PathBuf;
 use crate::commands::list::list_chapters;
@@ -27,7 +27,7 @@ use crate::commands::import::import_file;
 use crate::commands::remove::remove_manga;
 use crate::commands::open::open_manga;
 use crate::commands::unread::unread_chapter;
-use crate::commands::restore::restore_csv;
+use crate::commands::undo::restore_csv;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
