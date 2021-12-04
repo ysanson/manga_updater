@@ -1,10 +1,11 @@
 use std::path::PathBuf;
-use crate::file_ops::{read_csv, update_csv};
+use crate::file_ops::read_csv;
+use crate::file_ops::write_file::update_csv;
 use crate::models::CSVLine;
 
 /// Sets a manga to the previous chapter. The url param is the line of the manga to reset.
 /// # Arguments
-/// * `path`: The path to the source file. If None, the default path will be used (See [file_ops::extract_path_or_default]).
+/// * `path`: The path to the source file. If None, the default path will be used (See [`crate::file_ops::extract_path_or_default]`).
 /// * `url`: The line number of the manga to reset.
 /// * `verbose`: if true, more messages will be shown.
 pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {

@@ -1,4 +1,5 @@
-use crate::file_ops::{read_csv, update_csv};
+use crate::file_ops::read_csv;
+use crate::file_ops::write_file::update_csv;
 use std::path::PathBuf;
 use std::io;
 use crate::models::CSVLine;
