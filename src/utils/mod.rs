@@ -24,7 +24,7 @@ impl error::Error for ScraperError {}
 /// The vec with the updated value. If the line wasn't present (i.e. if the URL doesn't match), it is unchanged.
 pub fn update_chapter_in_vec(original: Vec<CSVLine>, updated: CSVLine) -> Vec<CSVLine> {
     original.into_iter()
-        .map(|elt| return if elt.url == updated.url { updated.clone() } else { elt } )
+        .map(|elt| if elt.url == updated.url { updated.clone() } else { elt } )
         .collect()
 }
 

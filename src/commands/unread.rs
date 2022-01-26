@@ -36,7 +36,7 @@ pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {
 /// # Returns:
 /// The same vector if the position given is out of range, or the updated vector.
 fn search_and_reset(lines: &Vec<CSVLine>, position: usize) -> Vec<CSVLine> {
-    return if lines.len() < position {
+    if lines.len() < position {
         lines.clone()
     } else {
         inner_search(lines, Vec::new(), 0, position)
@@ -46,24 +46,22 @@ fn search_and_reset(lines: &Vec<CSVLine>, position: usize) -> Vec<CSVLine> {
 /// Searches recursively through the given vector for the position in parameter, and updates said element.
 /// Reconstructs a new vector, and returns it when the current position is at the end of the vector.
 fn inner_search(vec: &Vec<CSVLine>, mut new_vec: Vec<CSVLine>, current_pos: usize, to_reset: usize) -> Vec<CSVLine> {
-    return if current_pos == vec.len() {
+    if current_pos == vec.len() {
         new_vec
+    } else if current_pos == to_reset {
+        let line = CSVLine {
+            url: vec[current_pos].clone().url,
+            last_chapter_num: vec[current_pos].last_chapter_num - 1f32
+        };
+        new_vec.push(line);
+        inner_search(vec, new_vec, current_pos + 1, to_reset)
     } else {
-        if current_pos == to_reset {
-            let line = CSVLine {
-                url: vec[current_pos].clone().url,
-                last_chapter_num: vec[current_pos].last_chapter_num - 1f32
-            };
-            new_vec.push(line);
-            inner_search(vec, new_vec, current_pos + 1, to_reset)
-        } else {
-            let line = CSVLine {
-                url: vec[current_pos].clone().url,
-                last_chapter_num: vec[current_pos].last_chapter_num
-            };
-            new_vec.push(line);
-            inner_search(vec, new_vec, current_pos + 1, to_reset)
-        }
+        let line = CSVLine {
+            url: vec[current_pos].clone().url,
+            last_chapter_num: vec[current_pos].last_chapter_num
+        };
+        new_vec.push(line);
+        inner_search(vec, new_vec, current_pos + 1, to_reset)
     }
 }
 

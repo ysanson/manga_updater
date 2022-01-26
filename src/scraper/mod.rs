@@ -1,4 +1,4 @@
-use reqwest;
+
 use scraper::{Html, Selector, ElementRef};
 use crate::models::MangaChapter;
 use std::error;
@@ -91,7 +91,7 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
     let chapter_title = last_chapter.inner_html();
     let link = last_chapter.value().attr("href").unwrap();
     let chapter_number = link
-        .split("-")
+        .split('-')
         .last().unwrap_or("1")
         .parse::<f32>()
         .unwrap_or(1f32);
@@ -111,7 +111,7 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
 /// A MangaChapter with the requested information.
 pub async fn find_last_chapter(manga_url: &str, client: Option<&Client>, verbose: &bool) -> Result<MangaChapter, ScraperError> {
     match download_page(manga_url, client).await {
-        Ok(page) => scrape_page_for_last_chapter(page, &manga_url, verbose.clone()),
+        Ok(page) => scrape_page_for_last_chapter(page, manga_url, *verbose),
         Err(e) => {
             eprintln!("Error processing url {}: reason {:?}", manga_url, e);
             Err(ScraperError { reason: e.to_string() })

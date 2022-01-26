@@ -71,6 +71,6 @@ async fn main() {
         "undo" => undo(args.path, args.verbose),
         _ => println!("Argument out of range. Try running --h or -h.")
     }
-    return
+    
 
 }

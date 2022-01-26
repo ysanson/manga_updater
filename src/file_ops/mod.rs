@@ -50,7 +50,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
     if *verbose {
         println!("Beginning processing the CSV at {:?}", file_path);
     }
-    let path = extract_path_or_default(&file_path);
+    let path = extract_path_or_default(file_path);
     let mut reader = csv::Reader::from_path(path)?;
     let mut lines: Vec<CSVLine> = Vec::new();
     {
@@ -115,7 +115,7 @@ mod tests {
             last_chapter_num: 0.0,
         });
         write_file::update_csv(&Some(path.clone()), to_insert)?;
-        let inserted = read_csv(&Some(path.clone()), &true)?;
+        let inserted = read_csv(&Some(path), &true)?;
         assert_eq!(inserted.len(), 1);
         assert_eq!(inserted.get(0).unwrap().url, "url1");
         assert_eq!(inserted.get(0).unwrap().last_chapter_num, 0.0);
