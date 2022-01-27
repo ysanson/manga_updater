@@ -1,9 +1,8 @@
-
-use scraper::{Html, Selector, ElementRef};
 use crate::models::MangaChapter;
-use std::error;
 use crate::utils::ScraperError;
 use reqwest::{Client, Error};
+use scraper::{ElementRef, Html, Selector};
+use std::error;
 
 /// Downloads the HTML contents of the URL given in parameter.
 /// Executes a GET request in async mode.
@@ -14,10 +13,13 @@ use reqwest::{Client, Error};
 /// * `client` the client to use to make requests. Is None, it will default to a standard method.
 /// # Returns:
 /// A String with the page's HTML.
-async fn download_page(url: &str, client: Option<&Client>) -> Result<String, Box<dyn error::Error>> {
+async fn download_page(
+    url: &str,
+    client: Option<&Client>,
+) -> Result<String, Box<dyn error::Error>> {
     match client {
         None => Ok(reqwest::get(url).await?.text().await?),
-        Some(client) =>  Ok(client.get(url).send().await?.text().await?)
+        Some(client) => Ok(client.get(url).send().await?.text().await?),
     }
 }
 
@@ -32,31 +34,49 @@ fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<Elemen
     let list_selector = Selector::parse("ul.row-content-chapter");
     let item_selector = Selector::parse("li");
     let link_selector = Selector::parse("a");
-    if list_selector.is_ok() && item_selector.is_ok() && link_selector.is_ok() {
-        fragment.select(& list_selector.unwrap())
-            .next().ok_or(ScraperError { reason: "The chapter list is absent.".to_string() })
-            .and_then(|ls| {
-                ls.select(& item_selector.unwrap()).next()
-                    .ok_or(ScraperError { reason: "The chapter list is empty".to_string() })
-            })
-            .and_then(|is| {
-                is.select(& link_selector.unwrap())
+    match list_selector {
+        Ok(list_sel) => match item_selector {
+            Ok(item_sel) => match link_selector {
+                Ok(link_sel) => fragment
+                    .select(&list_sel)
                     .next()
-                    .ok_or(ScraperError { reason: "The chapter link is unreachable.".to_string() })
-            })
-    } else {
-        if verbose {
-            if list_selector.is_err() {
-                eprintln!("Error while scraping the chapter list. The error is: {:?}", list_selector.err());
+                    .ok_or(ScraperError {
+                        reason: "The chapter list is absent.".to_string(),
+                    })
+                    .and_then(|ls| {
+                        ls.select(&item_sel)
+                            .next()
+                            .ok_or(ScraperError {
+                                reason: "The chapter list is empty".to_string(),
+                            })
+                    })
+                    .and_then(|is| {
+                        is.select(&link_sel)
+                            .next()
+                            .ok_or(ScraperError {
+                                reason: "The chapter link is unreachable.".to_string(),
+                            })
+                    }),
+                Err(link_sel_e) => {
+                    if verbose {
+                        eprintln!("Error while scraping the chapter link. The error is: {:?}", link_sel_e);
+                    }
+                    Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+                },
+            },
+            Err(item_sel_e) => {
+                if verbose {
+                    eprintln!("Error while scraping the list item. The error is: {:?}", item_sel_e);
+                }
+                Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+            },
+        },
+        Err(e) => {
+            if verbose {
+                eprintln!("Error while scraping the chapter list. The error is: {:?}",e);
             }
-            if item_selector.is_err() {
-                eprintln!("Error while scraping the list item. The error is: {:?}", item_selector.err());
-            }
-            if link_selector.is_err() {
-                eprintln!("Error while scraping the chapter link. The error is: {:?}", link_selector.err());
-            }
-        }
-        Err(ScraperError { reason: "Selectors couldn't be reached".to_string() })
+            Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+        },    
     }
 }
 
@@ -71,15 +91,29 @@ fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<Elemen
 /// * `page`: the String containing the page's HTML.
 /// # Returns
 /// A MangaChapter struct with the requested information listed above.
-fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Result<MangaChapter, ScraperError> {
+fn scrape_page_for_last_chapter(
+    page: String,
+    url: &str,
+    verbose: bool,
+) -> Result<MangaChapter, ScraperError> {
     let fragment = Html::parse_document(page.as_str());
     let title_selector = Selector::parse("div.story-info-right").unwrap();
     let manga_title = fragment
-        .select(& title_selector)
-        .next().ok_or(ScraperError { reason: format!("The title of the manga at URL {} cannot be found in the page.", url) })
+        .select(&title_selector)
+        .next()
+        .ok_or(ScraperError {
+            reason: format!(
+                "The title of the manga at URL {} cannot be found in the page.",
+                url
+            ),
+        })
         .and_then(|title| {
-            title.select(& Selector::parse("h1").unwrap())
-                .next().ok_or(ScraperError { reason: format!("The title of the manga at URL {} cannot be parsed.", url) })
+            title
+                .select(&Selector::parse("h1").unwrap())
+                .next()
+                .ok_or(ScraperError {
+                    reason: format!("The title of the manga at URL {} cannot be parsed.", url),
+                })
         })?
         .inner_html();
     if verbose {
@@ -92,7 +126,8 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
     let link = last_chapter.value().attr("href").unwrap();
     let chapter_number = link
         .split('-')
-        .last().unwrap_or("1")
+        .last()
+        .unwrap_or("1")
         .parse::<f32>()
         .unwrap_or(1f32);
 
@@ -100,7 +135,7 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
         manga_title,
         url: link.parse().unwrap(),
         chapter_title,
-        num: chapter_number
+        num: chapter_number,
     })
 }
 
@@ -109,12 +144,18 @@ fn scrape_page_for_last_chapter(page: String, url: &str, verbose: bool) -> Resul
 /// * `manga_url`: the URl of the manga to search for.
 /// # Returns:
 /// A MangaChapter with the requested information.
-pub async fn find_last_chapter(manga_url: &str, client: Option<&Client>, verbose: &bool) -> Result<MangaChapter, ScraperError> {
+pub async fn find_last_chapter(
+    manga_url: &str,
+    client: Option<&Client>,
+    verbose: &bool,
+) -> Result<MangaChapter, ScraperError> {
     match download_page(manga_url, client).await {
         Ok(page) => scrape_page_for_last_chapter(page, manga_url, *verbose),
         Err(e) => {
             eprintln!("Error processing url {}: reason {:?}", manga_url, e);
-            Err(ScraperError { reason: e.to_string() })
+            Err(ScraperError {
+                reason: e.to_string(),
+            })
         }
     }
 }
@@ -126,7 +167,7 @@ pub fn create_client() -> Result<Client, Error> {
     let builder = Client::builder();
     match builder.build() {
         Ok(client) => Ok(client),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
@@ -141,15 +182,21 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string() ,  true) {
+        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string(), true) {
             Ok(chapter) => {
-                assert_eq!(chapter.url, "https://readmanganato.com/manga-qm951521/chapter-74");
+                assert_eq!(
+                    chapter.url,
+                    "https://readmanganato.com/manga-qm951521/chapter-74"
+                );
                 assert_eq!(chapter.chapter_title, "Chapter 74");
-                assert_eq!(chapter.manga_title, "Mushoku Tensei - Isekai Ittara Honki Dasu");
+                assert_eq!(
+                    chapter.manga_title,
+                    "Mushoku Tensei - Isekai Ittara Honki Dasu"
+                );
                 assert_eq!(chapter.num, 74f32);
                 Ok(())
-            },
-            Err(_) => panic!("Cannot extract chapter")
+            }
+            Err(_) => panic!("Cannot extract chapter"),
         }
     }
 
@@ -158,11 +205,9 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/false_testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents,&"Original title".to_string(), true) {
+        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string(), true) {
             Ok(_) => panic!("The method should not return a value in this case"),
-            Err(_) => {
-                Ok(())
-            }
+            Err(_) => Ok(()),
         }
     }
 }

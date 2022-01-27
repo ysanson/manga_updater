@@ -80,7 +80,7 @@ async fn search_manga(manga: CSVLine, client: &Client, verbose: &bool) -> Result
     })
 }
 
-fn display_lines(lines: &Vec<LineChapter>, only_new: &bool) -> bool {
+fn display_lines(lines: &[LineChapter], only_new: &bool) -> bool {
     let mut has_new = false;
     for (i, line_chapter) in lines.iter().enumerate() {
         if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
