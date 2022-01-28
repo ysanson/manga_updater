@@ -23,13 +23,42 @@ async fn download_page(
     }
 }
 
+/// Browses the fragment using the given selectors to return the chapter.
+/// In the fragment, searches first for the chapter list (1st selector), then for the first <li> element (2nd selector), then the first <a> element (the 3rd selector).
+/// # Arguments:
+/// * fragment: a reference to the HTML page.
+/// * list_selector: a selector for the chapter list (a <ul.row-content-chapter> item).
+/// * item_selector: a selector for the chapter item (a <li> item).
+/// * link_sel: a selector fot the link item (a <a> item).
+/// # Returns
+/// An ElementRef pointing to the last chapter available.
+/// # Errors
+/// A custom ScraperError is thrown if a selector cannot be reached.
+fn browse_fragment(fragment: &Html, list_sel: Selector, item_sel: Selector, link_sel: Selector) -> Result<ElementRef, ScraperError> {
+    fragment
+        .select(&list_sel)
+        .next()
+        .ok_or(ScraperError {reason: "The chapter list is absent.".to_string()})
+        .and_then(|ls| {
+            ls.select(&item_sel)
+                .next()
+                .ok_or(ScraperError {reason: "The chapter list is empty".to_string()})
+        })
+        .and_then(|is| {
+            is.select(&link_sel)
+                .next()
+                .ok_or(ScraperError {reason: "The chapter link is unreachable.".to_string()})
+        })
+}
+
 /// Extracts the inner HTML using the selectors and the page.
+/// Parses the selectors, unwrap them, and calls `browse_fragment`.
 /// # Argument:
 /// * fragment: a reference to the HTML page.
 /// # Returns
 /// An ElementRef pointing to the last chapter available.
 /// # Errors
-/// A custom NoSuchElementError is thrown if the function encountered a None value.
+/// A custom ScraperError is thrown if a selector cannot be reached.
 fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<ElementRef, ScraperError> {
     let list_selector = Selector::parse("ul.row-content-chapter");
     let item_selector = Selector::parse("li");
@@ -37,45 +66,26 @@ fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<Elemen
     match list_selector {
         Ok(list_sel) => match item_selector {
             Ok(item_sel) => match link_selector {
-                Ok(link_sel) => fragment
-                    .select(&list_sel)
-                    .next()
-                    .ok_or(ScraperError {
-                        reason: "The chapter list is absent.".to_string(),
-                    })
-                    .and_then(|ls| {
-                        ls.select(&item_sel)
-                            .next()
-                            .ok_or(ScraperError {
-                                reason: "The chapter list is empty".to_string(),
-                            })
-                    })
-                    .and_then(|is| {
-                        is.select(&link_sel)
-                            .next()
-                            .ok_or(ScraperError {
-                                reason: "The chapter link is unreachable.".to_string(),
-                            })
-                    }),
+                Ok(link_sel) => browse_fragment(fragment, list_sel, item_sel, link_sel),
                 Err(link_sel_e) => {
                     if verbose {
                         eprintln!("Error while scraping the chapter link. The error is: {:?}", link_sel_e);
                     }
-                    Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+                    Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
                 },
             },
             Err(item_sel_e) => {
                 if verbose {
                     eprintln!("Error while scraping the list item. The error is: {:?}", item_sel_e);
                 }
-                Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+                Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
             },
         },
-        Err(e) => {
+        Err(list_sel_e) => {
             if verbose {
-                eprintln!("Error while scraping the chapter list. The error is: {:?}",e);
+                eprintln!("Error while scraping the chapter list. The error is: {:?}",list_sel_e);
             }
-            Err(ScraperError {reason: "Selectors couldn't be reached".to_string(),})
+            Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
         },    
     }
 }
