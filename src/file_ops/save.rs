@@ -37,7 +37,7 @@ pub fn backup_file(origin_path: Option<PathBuf>) -> Result<(), io::Error> {
 /// * `io::Unsupported` if the path isn't a file. Will be changed to ErrorKind::IsADirectory in the future.
 /// * `io::InvalidInput` if the path doesn't end with .csv.bak or if an error happened while converting the path to str.
 pub fn restore_file(restore_path: &Option<PathBuf>, verbose: &bool) -> Result<(), io::Error> {
-    let path = extract_restore_path_or_default(&restore_path);
+    let path = extract_restore_path_or_default(restore_path);
     match path.clone().to_str() {
         Some(p) => {
             if !p.ends_with(".csv.bak") {
@@ -108,7 +108,7 @@ mod tests {
         restore_file(&Some(backup_path), &true)?;
         // Verify that the CSV has been restored
         assert!(path.exists());
-        let restored_content = fs::read_to_string(path.clone())?;
+        let restored_content = fs::read_to_string(path)?;
         assert!(restored_content.contains("url1,0"));
         fs::remove_file("mangas.csv")?;
         fs::remove_file("mangas.csv.bak")?;

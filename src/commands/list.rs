@@ -35,7 +35,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
                     if verbose {
                         println!("Collected {} chapters.", chapters.len());
                     }
-                    if chapters.len() > 0 {
+                    if !chapters.is_empty() {
                         if display_lines(&chapters, &only_new) {
                             dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
                             let res: Result<usize, _> = try_read!();
@@ -73,14 +73,14 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
 /// # Returns:
 /// A result containing a `LineChapter`, effectively a `CSVLine` and a `MangaChapter` combined.
 async fn search_manga(manga: CSVLine, client: &Client, verbose: &bool) -> Result<LineChapter, ScraperError> {
-    let chapter = find_last_chapter(manga.url.as_str(), Some(&client), verbose).await?;
+    let chapter = find_last_chapter(manga.url.as_str(), Some(client), verbose).await?;
     Ok(LineChapter {
         line: manga,
         chapter
     })
 }
 
-fn display_lines(lines: &Vec<LineChapter>, only_new: &bool) -> bool {
+fn display_lines(lines: &[LineChapter], only_new: &bool) -> bool {
     let mut has_new = false;
     for (i, line_chapter) in lines.iter().enumerate() {
         if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
