@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use crate::file_ops::{read_csv};
 use crate::scraper::{find_last_chapter, create_client};
-use futures::future::try_join_all;
+use futures::future::join_all;
 use crate::models::{CSVLine, LineChapter};
 use text_io::try_read;
 use reqwest::Client;
@@ -30,37 +30,43 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
                 .map(|line| search_manga(line, &client, &verbose))
                 .collect();
 
-            match try_join_all(mangas_futures).await {
-                Ok(chapters) => {
-                    if verbose {
-                        println!("Collected {} chapters.", chapters.len());
-                    }
-                    if !chapters.is_empty() {
-                        if display_lines(&chapters, &only_new) {
-                            dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
-                            let res: Result<usize, _> = try_read!();
-                            if let Ok(selected_chapter_index) = res {
-                                match chapters.get(selected_chapter_index - 1) {
-                                    Some(chapter_last) => {
-                                        if open::that(&chapter_last.chapter.url).is_err() {
-                                            eprintln!("Error while opening the URL.");
-                                        } else if !no_update {
-                                            update_chapters(file_path, selected_chapter_index.to_string().as_str(), verbose).await;
-                                        }
-                                    },
-                                    None => eprintln!("The index you've given is out of range.")
-                                }
-                            }
-                        } else {
-                            println!("Nothing new, sadly.")
-                        }
-                    } else {
-                        dark_red_ln!("No manga registered. Please use the add command.")
-                    }
-                }
-                Err(e) => eprintln!("An error occurred during the chapter fetching. Try running with -v to see more precisely. The error is: {}", e.reason)
+            let futures: Vec<std::result::Result<LineChapter, ScraperError>> = join_all(mangas_futures).await;
+            let (mangas, errors): (Vec<_>, Vec<_>) = futures.into_iter().partition(Result::is_ok);
+            
+            if !errors.is_empty() {
+                dark_yellow_ln!("Some mangas couldn't be reached. Try running again with the -v option.");   
             }
 
+            if verbose {
+                println!("Collected {} chapters.", mangas.len());
+                if !errors.is_empty() {
+                    println!("{} mangas were unavailable. Check the manga URL.", errors.len());
+                    let errors_list: Vec<ScraperError> = errors.into_iter().map(Result::unwrap_err).collect();
+                    println!("Errors are: {:?}", errors_list); 
+                }
+            }
+
+            if !mangas.is_empty() {
+                let chapters: Vec<LineChapter> = mangas.into_iter().map(Result::unwrap).collect();
+                if display_lines(&chapters, &only_new) {
+                    dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
+                    let res: Result<usize, _> = try_read!();
+                    if let Ok(selected_chapter_index) = res {
+                        match chapters.get(selected_chapter_index - 1) {
+                            Some(chapter_last) => {
+                                if open::that(&chapter_last.chapter.url).is_err() {
+                                    eprintln!("Error while opening the URL.");
+                                } else if !no_update {
+                                    update_chapters(file_path, selected_chapter_index.to_string().as_str(), verbose).await;
+                                }
+                            },
+                            None => eprintln!("The index you've given is out of range.")
+                        }
+                    }
+                } else {
+                    println!("Nothing new, sadly.")
+                }
+            }
         },
         Err(e) => println!("An error occurred : {}", e)
     }
