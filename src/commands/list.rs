@@ -39,9 +39,11 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
 
             if verbose {
                 println!("Collected {} chapters.", mangas.len());
-                println!("{} mangas were unavailable. Check the manga URL.", errors.len());
-                let errors_list: Vec<ScraperError> = errors.into_iter().map(Result::unwrap_err).collect();
-                println!("Errors are: {:?}", errors_list); 
+                if !errors.is_empty() {
+                    println!("{} mangas were unavailable. Check the manga URL.", errors.len());
+                    let errors_list: Vec<ScraperError> = errors.into_iter().map(Result::unwrap_err).collect();
+                    println!("Errors are: {:?}", errors_list); 
+                }
             }
 
             if !mangas.is_empty() {
