@@ -23,6 +23,15 @@ async fn download_page(
     }
 }
 
+pub async fn is_page_not_found(manga_url: &str, client: Option<&Client>, verbose: &bool) -> Result<bool, ScraperError> {
+    match download_page(manga_url, client).await {
+        Ok(page_contents) => Ok(page_contents.contains("404 - PAGE NOT FOUND")),
+        Err(e) => Err(ScraperError {
+            reason: e.to_string(),
+        })
+    }
+}
+
 /// Browses the fragment using the given selectors to return the chapter.
 /// In the fragment, searches first for the chapter list (1st selector), then for the first <li> element (2nd selector), then the first <a> element (the 3rd selector).
 /// # Arguments:

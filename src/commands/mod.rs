@@ -17,6 +17,8 @@ mod unread;
 /// Restore command logic
 mod undo;
 
+mod fix_urls;
+
 use std::path::PathBuf;
 use crate::commands::list::list_chapters;
 use crate::commands::add::add_new_manga;
@@ -137,4 +139,8 @@ pub fn unread(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
 
 pub fn undo(from: Option<PathBuf>,verbose: bool) {
     restore_csv(from, verbose)
+}
+
+pub fn fix_urls(from: Option<PathBuf>,verbose: bool) {
+
 }
