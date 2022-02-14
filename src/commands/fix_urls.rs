@@ -1,5 +1,6 @@
 use std::path::PathBuf;
-use std::{error, fmt};
+use text_io::try_read;
+use std::fmt;
 use crate::utils::ScraperError;
 use crate::models::{CSVLine};
 use crate::scraper::{is_page_not_found, create_client};
@@ -42,27 +43,31 @@ async fn search_missing_mangas(file_path: Option<PathBuf>, verbose: &bool) -> Re
                 .collect();
             Ok(missing_mangas)
         },
-        Err(e) => println!("An error occurred : {}", e)
+        Err(e) => {
+            println!("An error occurred : {}", e);
+            Err(ScraperError {reason: e.to_string()})
+        }
     }
 }
 
-async fn create_new_url(line: CSVLine, verbose: &bool) -> Result<String, UpdateError> {
+fn create_new_url(line: &CSVLine, verbose: &bool) -> Option<String> {
     if line.url.contains("manganato") && !line.url.contains("readmanganato") {
         match line.url.find('m') {
             Some(index) => {
                 if index == 0 {
-                    Ok("https://read".to_owned() + &line.url)
+                    Some("https://read".to_owned() + &line.url)
                 } else {
-                    let mut url = line.url;
+                    let mut url = line.url.clone();
                     url.insert_str(index, "read");
-                    Ok(url)
+                    Some(url.to_string())
                 }
-            }
+            },
+            None => None
         }
     } else if line.url.contains("manganelo") {
-        Ok(line.url.replace("manganelo", "manganato"))
+        Some(line.url.replace("manganelo", "manganato"))
     } else {
-        Err(UpdateError {reason: "Impossible to infer the new URL scheme.".to_string()})
+        None
     }
 }
 
@@ -72,4 +77,40 @@ async fn search_missing(manga: CSVLine, client: &Client, verbose: &bool) -> Resu
         line: manga,
         not_found
     })
+}
+
+async fn find_new_url(line: CSVLine, verbose: &bool) -> Option<CSVLine> {
+    match create_new_url(&line, &verbose) {
+        Some(new_url) => {
+            match is_page_not_found(&new_url, None, verbose).await {
+                Ok(is_not_found) => {
+                    if is_not_found {
+                       return None
+                    } else {
+                        return Some(CSVLine {url: new_url, last_chapter_num: line.last_chapter_num})
+                    }
+                },
+                Err(e) => None
+            }
+        },
+        None => None
+    }
+}
+
+async fn ask_user_new_URL(old_url: String, verbose: &bool) -> String {
+    print!("The old URL is {}. Please search https://manganato.com for the manga, and paste the URL here (Empty String will change nothing): ", old_url);
+    let new_url_scan: Result<String, _> = try_read!();
+    match new_url_scan {
+        Ok(new_url) => {
+            if new_url.is_empty() {
+                old_url
+            } else {
+                new_url
+            }
+        },
+        Err(e) => {
+            eprintln!("Error while scanning the URL, returning the old one. Error is {}", e.to_string());
+            old_url
+        }
+    }
 }
