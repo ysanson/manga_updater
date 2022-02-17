@@ -79,7 +79,7 @@ async fn search_missing(manga: CSVLine, client: &Client, verbose: &bool) -> Resu
     })
 }
 
-async fn find_new_url(line: CSVLine, verbose: &bool) -> Option<CSVLine> {
+async fn find_new_url(line: &CSVLine, verbose: &bool) -> Option<CSVLine> {
     match create_new_url(&line, &verbose) {
         Some(new_url) => {
             match is_page_not_found(&new_url, None, verbose).await {
@@ -97,7 +97,7 @@ async fn find_new_url(line: CSVLine, verbose: &bool) -> Option<CSVLine> {
     }
 }
 
-async fn ask_user_new_URL(old_url: String, verbose: &bool) -> String {
+fn ask_user_new_URL(old_url: String, verbose: &bool) -> String {
     print!("The old URL is {}. Please search https://manganato.com for the manga, and paste the URL here (Empty String will change nothing): ", old_url);
     let new_url_scan: Result<String, _> = try_read!();
     match new_url_scan {
@@ -112,5 +112,29 @@ async fn ask_user_new_URL(old_url: String, verbose: &bool) -> String {
             eprintln!("Error while scanning the URL, returning the old one. Error is {}", e.to_string());
             old_url
         }
+    }
+}
+
+async fn inner_function(line: CSVLine, verbose: &bool) -> CSVLine {
+    match find_new_url(&line, verbose).await {
+        Some(new_csv_line) => {
+            dark_green_ln!("The manga URL {} has been updated!", new_csv_line.url);
+            new_csv_line
+        },
+        None => {
+            let new_url = ask_user_new_URL(line.url, verbose);
+            CSVLine {url: new_url, last_chapter_num: line.last_chapter_num}
+        }
+    }
+}
+
+async fn update_urls(file_path: Option<PathBuf>, verbose: &bool) -> Result<(), ScraperError> {
+    let missing_mangas = search_missing_mangas(file_path, verbose).await?;
+    if missing_mangas.is_empty() {
+        println!("No errors found in the CSV!");
+        Ok(())
+    } else {
+        let updated_errors: Vec<_> = missing_mangas.into_iter().map(|l| inner_function(l, verbose)).collect();
+        Ok(())
     }
 }
