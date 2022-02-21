@@ -43,10 +43,16 @@ async fn search_missing_mangas(
                 .into_iter()
                 .map(|line| search_missing(line, &client, verbose))
                 .collect();
-
+            
             let futures: Vec<std::result::Result<PresenceResult, ScraperError>> =
                 join_all(mangas_futures).await;
+            if *verbose {
+                println!("Processed {} mangas.", futures.len() +1);
+            }
             let missing_mangas: Vec<_> = futures.into_iter().filter_map(|res| res.ok()).collect();
+            if *verbose {
+                println!("Found {} valid mangas urls.", missing_mangas.len() +1);
+            }
             Ok(missing_mangas)
         }
         Err(e) => {
@@ -96,6 +102,9 @@ async fn find_new_url(line: &CSVLine, verbose: &bool) -> Option<CSVLine> {
         Some(new_url) => match is_page_not_found(&new_url, None, verbose).await {
             Ok(is_not_found) => {
                 if is_not_found {
+                    if *verbose {
+                        println!("The new URL doesn't point to a valid page.");
+                    }
                     None
                 } else {
                     Some(CSVLine {
@@ -135,6 +144,9 @@ fn ask_user_new_url(old_url: String, _verbose: &bool) -> String {
 
 async fn inner_function(line: PresenceResult, verbose: &bool) -> CSVLine {
     if !line.not_found {
+        if *verbose {
+            println!("{} is okay, no need to change it.", line.line.url)
+        }
         line.line
     } else {
         match find_new_url(&line.line, verbose).await {

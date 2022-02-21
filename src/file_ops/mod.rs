@@ -67,7 +67,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         })
     }
     if *verbose {
-        println!("Found {} lines in the CSV.", lines.len());
+        println!("Found {} lines in the CSV.", lines.len() + 1);
     }
     Ok(lines)
 }

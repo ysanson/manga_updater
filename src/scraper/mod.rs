@@ -25,7 +25,7 @@ async fn download_page(
 
 pub async fn is_page_not_found(manga_url: &str, client: Option<&Client>, verbose: &bool) -> Result<bool, ScraperError> {
     if *verbose {
-        println!("Beginning to fetch the contents");
+        println!("Beginning to fetch the contents at {}", manga_url);
     }
     match download_page(manga_url, client).await {
         Ok(page_contents) => Ok(page_contents.contains("404 - PAGE NOT FOUND")),
