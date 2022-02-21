@@ -30,6 +30,7 @@ use crate::commands::remove::remove_manga;
 use crate::commands::open::open_manga;
 use crate::commands::unread::unread_chapter;
 use crate::commands::undo::restore_csv;
+use crate::commands::fix_urls::update_urls;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
@@ -141,6 +142,9 @@ pub fn undo(from: Option<PathBuf>,verbose: bool) {
     restore_csv(from, verbose)
 }
 
-pub fn fix_urls(from: Option<PathBuf>,verbose: bool) {
-
+pub async fn fix(from: Option<PathBuf>, verbose: bool) {
+    match update_urls(from, verbose).await {
+        Ok(()) => println!("Operation successful"),
+        Err(_e) => eprintln!("Operation unsucessful")
+    }
 }
