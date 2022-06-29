@@ -57,6 +57,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         let headers = reader.headers()?;
         assert!(headers.get(0).unwrap_or("").eq("URL"));
         assert!(headers.get(1).unwrap_or("").eq("Last chapter"));
+        assert!(headers.get(1).unwrap_or("").eq("Title"));
     }
 
     for record in reader.records() {
@@ -64,6 +65,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         lines.push(CSVLine {
             url: String::from(rec.get(0).unwrap()),
             last_chapter_num: rec.get(1).unwrap().parse().unwrap(),
+            title: String::from(rec.get(2).unwrap()),
         })
     }
     if *verbose {
@@ -113,6 +115,7 @@ mod tests {
         to_insert.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         write_file::update_csv(&Some(path.clone()), to_insert)?;
         let inserted = read_csv(&Some(path), &true)?;
@@ -132,6 +135,7 @@ mod tests {
         new_lines.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         write_file::update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());

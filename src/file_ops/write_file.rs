@@ -1,11 +1,11 @@
-use crate::file_ops::{extract_path_or_default};
+use crate::file_ops::extract_path_or_default;
 use crate::file_ops::save::backup_file;
+use crate::models::CSVLine;
+use csv::Writer;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io;
 use std::path::PathBuf;
-use csv::Writer;
-use crate::models::CSVLine;
 
 /// Updates the CSV file. I effectively overwrites it wih the new data given in parameter.
 /// It's important to make sure the current lines are in the new data, as they will be overwritten!
@@ -39,12 +39,13 @@ pub fn append_to_file(
     file_path: Option<PathBuf>,
     url: &str,
     last_chapter: f32,
+    title: &str,
 ) -> Result<(), io::Error> {
     let path = extract_path_or_default(&file_path);
     let file = OpenOptions::new().append(true).open(path.clone())?;
     let mut writer = Writer::from_writer(file);
     backup_file(Some(path))?;
-    writer.write_record(&[url, last_chapter.to_string().as_str()])?;
+    writer.write_record(&[url, last_chapter.to_string().as_str(), title])?;
     writer.flush()?;
     Ok(())
 }
@@ -58,7 +59,7 @@ pub fn append_to_file(
 pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     let mut wtr = Writer::from_path(path)?;
-    wtr.write_record(&["URL", "Last chapter"])?;
+    wtr.write_record(&["URL", "Last chapter", "Title"])?;
     wtr.flush()?;
     Ok(())
 }
@@ -81,23 +82,22 @@ pub fn export_file(
     Ok(out_path)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::file_ops::read_csv;
     use serial_test::serial;
-    use crate::file_ops::{read_csv};
 
     #[test]
     #[serial]
     fn test_append_to_file() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
         create_file(&Some(path.clone()))?;
-        append_to_file(Some(path.clone()), "url1", 0.0)?;
+        append_to_file(Some(path.clone()), "url1", 0.0, "title")?;
         let contents = read_csv(&Some(path), &true)?;
         assert_eq!(contents.len(), 1);
         assert_eq!(contents.get(0).unwrap().url, "url1");
-        assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0);
+        assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0, "title");
         fs::remove_file("mangas.csv")?;
         fs::remove_file("mangas.csv.bak")?;
         Ok(())
@@ -110,7 +110,7 @@ mod tests {
         create_file(&Some(path.clone()))?;
         assert!(path.exists());
         let contents = fs::read_to_string(&path)?;
-        assert!(contents.starts_with("URL,Last chapter"));
+        assert!(contents.starts_with("URL,Last chapter,Title"));
         fs::remove_file(path)?;
         Ok(())
     }
@@ -124,6 +124,7 @@ mod tests {
         new_lines.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());

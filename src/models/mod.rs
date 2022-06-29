@@ -11,7 +11,8 @@ pub struct MangaChapter {
 #[derive(Debug, PartialEq, Clone)]
 pub struct CSVLine {
     pub url: String,
-    pub last_chapter_num: f32
+    pub last_chapter_num: f32,
+    pub title: String,
 }
 
 /// Represents a combination of a CSVLine and a MangaChapter, to use where necessary.

@@ -41,10 +41,16 @@ pub fn restore_file(restore_path: &Option<PathBuf>, verbose: &bool) -> Result<()
     match path.clone().to_str() {
         Some(p) => {
             if !p.ends_with(".csv.bak") {
-                return Err(Error::new(ErrorKind::InvalidInput, "The supplied path is incorrect. The extensions should be .csv.bak."))
+                return Err(Error::new(
+                    ErrorKind::InvalidInput,
+                    "The supplied path is incorrect. The extensions should be .csv.bak.",
+                ));
             }
             if !path.is_file() {
-                return Err(Error::new(ErrorKind::Unsupported, "The path should point to the backup CSV file"))
+                return Err(Error::new(
+                    ErrorKind::Unsupported,
+                    "The path should point to the backup CSV file",
+                ));
             }
             let copy_path = &p[0..p.len() - 4];
             fs::copy(path, copy_path)?;
@@ -52,18 +58,21 @@ pub fn restore_file(restore_path: &Option<PathBuf>, verbose: &bool) -> Result<()
                 println!("Restored CSV from {}", p);
             }
             Ok(())
-        },
-        None => Err(Error::new(ErrorKind::InvalidInput, "An error happened while converting the path to String."))
+        }
+        None => Err(Error::new(
+            ErrorKind::InvalidInput,
+            "An error happened while converting the path to String.",
+        )),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serial_test::serial;
     use crate::file_ops::create_file;
     use crate::file_ops::write_file::update_csv;
     use crate::models::CSVLine;
+    use serial_test::serial;
 
     #[test]
     #[serial]
@@ -74,6 +83,7 @@ mod tests {
         new_lines.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());
@@ -96,6 +106,7 @@ mod tests {
         new_lines.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());

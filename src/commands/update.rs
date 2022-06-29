@@ -1,11 +1,11 @@
-use std::path::PathBuf;
-use crate::file_ops::{read_csv};
+use crate::file_ops::read_csv;
 use crate::file_ops::write_file::update_csv;
-use crate::scraper::{find_last_chapter, create_client};
-use futures::future::try_join_all;
-use crate::models::{CSVLine};
-use reqwest::Client;
+use crate::models::CSVLine;
+use crate::scraper::{create_client, find_last_chapter};
 use crate::utils::update_chapter_in_vec;
+use futures::future::try_join_all;
+use reqwest::Client;
+use std::path::PathBuf;
 
 /// Updates the chapters of all stored manga or just a selected one.
 /// # Arguments:
@@ -21,7 +21,8 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                 if verbose {
                     println!("Client created, fetching the chapters asynchronously...");
                 }
-                let chapters_future: Vec<_> = lines.into_iter()
+                let chapters_future: Vec<_> = lines
+                    .into_iter()
                     .map(|line| search_update(line, Some(&client), &verbose))
                     .collect();
                 let chapters = try_join_all(chapters_future).await.unwrap();
@@ -29,22 +30,30 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                     println!("{} chapters retrieved.", chapters.len());
                 }
                 match update_csv(&path, chapters) {
-                    Ok(_) => dark_green_ln!("All the mangas have been updated to their most recent chapter."),
-                    Err(e) => eprintln!("{}", e)
+                    Ok(_) => dark_green_ln!(
+                        "All the mangas have been updated to their most recent chapter."
+                    ),
+                    Err(e) => eprintln!("{}", e),
                 }
-            }
-            else {
+            } else {
                 if verbose {
-                    println!("Trying to parse the expression given ({}) in a number...", url)
+                    println!(
+                        "Trying to parse the expression given ({}) in a number...",
+                        url
+                    )
                 }
                 if let Ok(number) = url.parse::<usize>() {
                     if verbose {
                         println!("Updating chapter at position {}", number - 1);
                     }
                     if let Some(line) = lines.get(number - 1) {
-                        let updated_line = search_update(line.clone(), None, &verbose).await.unwrap();
+                        let updated_line =
+                            search_update(line.clone(), None, &verbose).await.unwrap();
                         if verbose {
-                            println!("New chapter for {} is {} (stored is {})", line.url, updated_line.last_chapter_num, line.last_chapter_num);
+                            println!(
+                                "New chapter for {} is {} (stored is {})",
+                                line.url, updated_line.last_chapter_num, line.last_chapter_num
+                            );
                         }
                         if line.last_chapter_num == updated_line.last_chapter_num {
                             println!("This manga is already up to date!");
@@ -52,14 +61,16 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                         }
                         let chapters = update_chapter_in_vec(lines, updated_line);
                         match update_csv(&path, chapters) {
-                            Ok(_) => dark_green_ln!("The manga has been updated to its most recent chapter."),
-                            Err(e) => eprintln!("{}", e)
+                            Ok(_) => dark_green_ln!(
+                                "The manga has been updated to its most recent chapter."
+                            ),
+                            Err(e) => eprintln!("{}", e),
                         }
                     }
                 }
             }
-        },
-        Err(e) => eprintln!("{}", e)
+        }
+        Err(e) => eprintln!("{}", e),
     }
 }
 
@@ -69,11 +80,15 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
 /// * `Client`: a reference to a HTTP client, for sending the requests. If None, the default client of Reqwest will be used.
 /// # Returns:
 /// A new CSVLine, containing the previous URL and the new chapter number.
-async fn search_update(manga: CSVLine, client: Option<&Client>, verbose: &bool) -> Result<CSVLine, Box<dyn std::error::Error>> {
+async fn search_update(
+    manga: CSVLine,
+    client: Option<&Client>,
+    verbose: &bool,
+) -> Result<CSVLine, Box<dyn std::error::Error>> {
     let chapter = find_last_chapter(manga.url.as_str(), client, verbose).await?;
     Ok(CSVLine {
-            url: manga.url,
-            last_chapter_num: chapter.num
-        })
+        url: manga.url,
+        last_chapter_num: chapter.num,
+        title: chapter.manga_title,
+    })
 }
-
