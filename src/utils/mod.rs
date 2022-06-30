@@ -1,5 +1,5 @@
-use std::{error, fmt};
 use crate::models::CSVLine;
+use std::{error, fmt};
 
 #[derive(Debug, Clone)]
 pub struct ScraperError {
@@ -23,8 +23,15 @@ impl error::Error for ScraperError {}
 /// # Returns
 /// The vec with the updated value. If the line wasn't present (i.e. if the URL doesn't match), it is unchanged.
 pub fn update_chapter_in_vec(original: Vec<CSVLine>, updated: CSVLine) -> Vec<CSVLine> {
-    original.into_iter()
-        .map(|elt| if elt.url == updated.url { updated.clone() } else { elt } )
+    original
+        .into_iter()
+        .map(|elt| {
+            if elt.url == updated.url {
+                updated.clone()
+            } else {
+                elt
+            }
+        })
         .collect()
 }
 
@@ -35,10 +42,26 @@ mod tests {
     #[test]
     fn update_chapter_in_vec_test() {
         let mut original: Vec<CSVLine> = Vec::new();
-        let line1 = CSVLine { url: "url1".to_string(), last_chapter_num: 0.0 };
-        let line2 = CSVLine { url: "url2".to_string(), last_chapter_num: 1.0 };
-        let line3 = CSVLine { url: "url3".to_string(), last_chapter_num: 2.0 };
-        let new_line2 = CSVLine { url: "url2".to_string(), last_chapter_num: 3.0 };
+        let line1 = CSVLine {
+            url: "url1".to_string(),
+            last_chapter_num: 0.0,
+            title: "title1".to_string(),
+        };
+        let line2 = CSVLine {
+            url: "url2".to_string(),
+            last_chapter_num: 1.0,
+            title: "title2".to_string(),
+        };
+        let line3 = CSVLine {
+            url: "url3".to_string(),
+            last_chapter_num: 2.0,
+            title: "title3".to_string(),
+        };
+        let new_line2 = CSVLine {
+            url: "url2".to_string(),
+            last_chapter_num: 3.0,
+            title: "title2".to_string(),
+        };
         original.push(line1);
         original.push(line2);
         original.push(line3);

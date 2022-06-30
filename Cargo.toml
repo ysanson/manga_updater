@@ -8,13 +8,13 @@ resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-scraper = "0.12.0"
-reqwest = { version = "0.11.6" }
-tokio = { version = "1.14.0", features = ["full"] }
-futures = "0.3.18"
-structopt = "0.3.25"
-csv = "1.1.6"
 colour = "0.6.0"
+csv = "1.1.6"
+futures = "0.3.18"
+open = "3.0.1"
+reqwest = { version = "0.11.6" }
+scraper = "0.13.0"
+serial_test = "0.8.0"
+structopt = "0.3.25"
 text_io = "0.1.9"
-open = "2.0.1"
-serial_test = "0.5.1"
+tokio = { version = "1.14.0", features = ["full"] }

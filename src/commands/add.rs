@@ -16,7 +16,7 @@ pub async fn add_new_manga(path: Option<PathBuf>,  manga_url: &str, verbose: boo
             if !is_present {
                 match find_last_chapter(manga_url, None, &verbose).await {
                     Ok(last_chapter) => {
-                        match append_to_file(path, manga_url, last_chapter.num) {
+                        match append_to_file(path, manga_url, last_chapter.num, last_chapter.manga_title.as_str()) {
                             Ok(_) => println!("The manga has been added."),
                             Err(e) => eprintln!("Error during the add : {}", e)
                         }

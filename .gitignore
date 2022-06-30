@@ -1,3 +1,5 @@
 /target
 .idea/
-mangas.txt
+.vscode/
+testDir/
+mangas.*

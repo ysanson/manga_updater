@@ -2,7 +2,6 @@ pub mod save;
 pub mod write_file;
 
 use crate::models::CSVLine;
-use csv::Writer;
 use std::env::current_exe;
 use std::fs;
 use std::io;
@@ -57,6 +56,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         let headers = reader.headers()?;
         assert!(headers.get(0).unwrap_or("").eq("URL"));
         assert!(headers.get(1).unwrap_or("").eq("Last chapter"));
+        assert!(headers.get(2).unwrap_or("").eq("Title"));
     }
 
     for record in reader.records() {
@@ -64,7 +64,8 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         lines.push(CSVLine {
             url: String::from(rec.get(0).unwrap()),
             last_chapter_num: rec.get(1).unwrap().parse().unwrap(),
-        })
+            title: String::from(rec.get(2).unwrap()),
+        });
     }
     if *verbose {
         println!("Found {} lines in the CSV.", lines.len());
@@ -85,20 +86,6 @@ pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io:
     Ok(contents.contains(url))
 }
 
-/// Creates a new CSV file, along with the headers.
-/// The CSv is not customized in terms of separation and line endings.
-/// # Argument:
-/// * `file_path`: the optional file path, if a custom CSV location is used.
-/// # Returns:
-/// Ok if everything went well.
-pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
-    let path = extract_path_or_default(file_path);
-    let mut wtr = Writer::from_path(path)?;
-    wtr.write_record(&["URL", "Last chapter"])?;
-    wtr.flush()?;
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,17 +95,19 @@ mod tests {
     #[serial]
     fn test_read_csv() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        create_file(&Some(path.clone()))?;
+        write_file::create_file(&Some(path.clone()))?;
         let mut to_insert: Vec<CSVLine> = Vec::new();
         to_insert.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         write_file::update_csv(&Some(path.clone()), to_insert)?;
         let inserted = read_csv(&Some(path), &true)?;
         assert_eq!(inserted.len(), 1);
         assert_eq!(inserted.get(0).unwrap().url, "url1");
         assert_eq!(inserted.get(0).unwrap().last_chapter_num, 0.0);
+        assert_eq!(inserted.get(0).unwrap().title, "title");
         fs::remove_file("mangas.csv")?;
         Ok(())
     }
@@ -127,11 +116,12 @@ mod tests {
     #[serial]
     fn test_is_url_present() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        create_file(&Some(path.clone()))?;
+        write_file::create_file(&Some(path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 0.0,
+            title: "title".to_string(),
         });
         write_file::update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());

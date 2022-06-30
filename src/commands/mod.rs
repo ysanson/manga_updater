@@ -1,33 +1,33 @@
-/// List command logic
-mod list;
 /// Add command logic
 mod add;
-/// Update command logic
-mod update;
 /// Export command logic
 mod export;
 /// Import command logic
 mod import;
-/// Remove command logic
-mod remove;
+/// List command logic
+mod list;
 /// Open command logic
 mod open;
-/// Unread command logic
-mod unread;
+/// Remove command logic
+mod remove;
 /// Restore command logic
 mod undo;
+/// Unread command logic
+mod unread;
+/// Update command logic
+mod update;
 
-use std::path::PathBuf;
-use crate::commands::list::list_chapters;
 use crate::commands::add::add_new_manga;
-use crate::file_ops::create_file;
-use crate::commands::update::update_chapters;
 use crate::commands::export::export_data;
 use crate::commands::import::import_file;
-use crate::commands::remove::remove_manga;
+use crate::commands::list::list_chapters;
 use crate::commands::open::open_manga;
-use crate::commands::unread::unread_chapter;
+use crate::commands::remove::remove_manga;
 use crate::commands::undo::restore_csv;
+use crate::commands::unread::unread_chapter;
+use crate::commands::update::update_chapters;
+use crate::file_ops::write_file::create_file;
+use std::path::PathBuf;
 
 /// Lists the different mangas and their possible updates.
 /// Passes the logic to the list mod.
@@ -36,7 +36,7 @@ use crate::commands::undo::restore_csv;
 /// * `only_new`: will only display new chapters.
 /// * `no_update`: will not update the opened chapter.
 /// * `verbose`: if true, more messages will be shown.
-pub async fn list(file_path: Option<PathBuf>, only_new: bool, no_update: bool, verbose: bool){
+pub async fn list(file_path: Option<PathBuf>, only_new: bool, no_update: bool, verbose: bool) {
     list_chapters(file_path, only_new, no_update, verbose).await
 }
 
@@ -47,9 +47,8 @@ pub async fn list(file_path: Option<PathBuf>, only_new: bool, no_update: bool, v
 pub async fn add(path: Option<PathBuf>, manga_url: Option<String>, verbose: bool) {
     match manga_url {
         Some(url) => add_new_manga(path, url.as_str(), verbose).await,
-        None => println!("An URL is required to be added.")
+        None => println!("An URL is required to be added."),
     }
-
 }
 
 /// Initiates the CSV file to store mangas.
@@ -58,7 +57,7 @@ pub async fn add(path: Option<PathBuf>, manga_url: Option<String>, verbose: bool
 pub fn init(path: Option<PathBuf>) {
     match create_file(&path) {
         Ok(_) => println!("The file has been created, the program is ready to use."),
-        Err(e) => println!("Error creating the file: {}", e)
+        Err(e) => println!("Error creating the file: {}", e),
     }
 }
 
@@ -91,8 +90,12 @@ pub fn export(original_path: Option<PathBuf>, to: Option<PathBuf>) {
 /// * `overwrite`: if true, the destination file will be replaced.
 pub fn import(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool, verbose: bool) {
     match import_file(from, to, overwrite, verbose) {
-        Ok(imp) => if imp {println!("The file has been imported.")},
-        Err(e) => eprintln!("Error while importing: {}", e)
+        Ok(imp) => {
+            if imp {
+                println!("The file has been imported.")
+            }
+        }
+        Err(e) => eprintln!("Error while importing: {}", e),
     }
 }
 
@@ -103,7 +106,9 @@ pub fn import(from: Option<PathBuf>, to: Option<PathBuf>, overwrite: bool, verbo
 /// * `verbose`: if true, more messages will be shown.
 pub fn remove(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
     match url {
-        None => println!("No URL provided. Please provide a manganelo URl or a line number to delete."),
+        None => {
+            println!("No URL provided. Please provide a manganelo URl or a line number to delete.")
+        }
         Some(manga_url) => {
             if let Err(e) = remove_manga(from, manga_url.as_str(), verbose) {
                 eprintln!("{}", e)
@@ -122,19 +127,21 @@ pub async fn open(from: Option<PathBuf>, url: Option<String>, direct: bool, verb
     match url {
         None => {
             println!("Usage: open [url/line chapter]. You can open a manga directly by entering the line number as shown with the list command.");
-            println!("Use -d to open the last chapter directly, otherwise, it will open the manga page.")
-        },
-        Some(manga_url) => open_manga(from, manga_url.as_str(), direct, verbose).await
+            println!(
+                "Use -d to open the last chapter directly, otherwise, it will open the manga page."
+            )
+        }
+        Some(manga_url) => open_manga(from, manga_url.as_str(), direct, verbose).await,
     }
 }
 
 pub fn unread(from: Option<PathBuf>, url: Option<String>, verbose: bool) {
     match url {
         None => println!("No number provided. Please provide a line number to reset."),
-        Some(line_number) => unread_chapter(from, line_number.as_str(), verbose)
+        Some(line_number) => unread_chapter(from, line_number.as_str(), verbose),
     }
 }
 
-pub fn undo(from: Option<PathBuf>,verbose: bool) {
+pub fn undo(from: Option<PathBuf>, verbose: bool) {
     restore_csv(from, verbose)
 }
