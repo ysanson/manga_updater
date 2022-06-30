@@ -64,8 +64,8 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
         lines.push(CSVLine {
             url: String::from(rec.get(0).unwrap()),
             last_chapter_num: rec.get(1).unwrap().parse().unwrap(),
-            title: String::from(rec.get(2).unwrap_or("")),
-        })
+            title: String::from(rec.get(2).unwrap()),
+        });
     }
     if *verbose {
         println!("Found {} lines in the CSV.", lines.len());
