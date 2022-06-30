@@ -21,7 +21,7 @@ pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(
     let file = OpenOptions::new().append(true).open(path)?;
     let mut writer = Writer::from_writer(file);
     for line in values {
-        writer.write_record(&[line.url, line.last_chapter_num.to_string()])?;
+        writer.write_record(&[line.url, line.last_chapter_num.to_string(), line.title])?;
     }
     writer.flush()?;
     Ok(())
@@ -33,6 +33,7 @@ pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(
 /// * `file_path`: the optional file path, if a custom CSV location is used.
 /// * `url`: The URl to insert (first column).
 /// * `last_chapter`: The chapter to insert (second column)
+/// * `title`: The manga title (thrid column)
 /// # Returns:
 /// Ok if everything went well.
 pub fn append_to_file(
@@ -84,6 +85,8 @@ pub fn export_file(
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::*;
     use crate::file_ops::read_csv;
     use serial_test::serial;
@@ -115,9 +118,17 @@ mod tests {
         Ok(())
     }
 
+    fn remove_test_dir() -> Result<(), io::Error> {
+        if Path::new("testDir").exists() {
+            fs::remove_dir_all("testDir")?;
+        }
+        Ok(())
+    }
+
     #[test]
     #[serial]
     fn test_export_file() -> Result<(), io::Error> {
+        remove_test_dir()?;
         let path = PathBuf::from("mangas.csv");
         create_file(&Some(path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
@@ -138,8 +149,7 @@ mod tests {
         assert_eq!(new_file_contents.get(0).unwrap().url, "url1");
         fs::remove_file("mangas.csv")?;
         fs::remove_file("mangas.csv.bak")?;
-        fs::remove_file("testDir/mangas.csv")?;
-        fs::remove_dir("testDir")?;
+        remove_test_dir()?;
         Ok(())
     }
 }

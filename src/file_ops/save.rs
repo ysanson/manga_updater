@@ -69,7 +69,7 @@ pub fn restore_file(restore_path: &Option<PathBuf>, verbose: &bool) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::file_ops::create_file;
+    use crate::file_ops::write_file::create_file;
     use crate::file_ops::write_file::update_csv;
     use crate::models::CSVLine;
     use serial_test::serial;

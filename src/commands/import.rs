@@ -87,12 +87,12 @@ mod tests {
         current.push(CSVLine {
             url: "url1".to_string(),
             last_chapter_num: 1.0,
-            title: "title3".to_string(),
+            title: "title1".to_string(),
         });
         current.push(CSVLine {
             url: "url3".to_string(),
             last_chapter_num: 3.0,
-            title: "title4".to_string(),
+            title: "title3".to_string(),
         });
         assert_eq!(imported.get(0), current.get(0));
         let result = find_new_lines(imported.clone(), current.clone());
