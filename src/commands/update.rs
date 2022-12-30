@@ -5,12 +5,13 @@ use crate::scraper::{create_client, find_last_chapter};
 use crate::utils::update_chapter_in_vec;
 use futures::future::try_join_all;
 use reqwest::Client;
+use std::num::ParseIntError;
 use std::path::PathBuf;
 
 /// Updates the chapters of all stored manga or just a selected one.
 /// # Arguments:
 /// * `path`: The path to the source file. If None, the default path will be used (See [`crate::file_ops::extract_path_or_default`]).
-/// * `url`: The URl to the manga to update. It can also be _all_, as it will update every stored manga.
+/// * `url`: The URl to the manga to update. It can also be _all_, as it will update every stored manga. It can also be line numbers separated by spaces.
 /// It can also be a line number.
 /// * `verbose`: if true, more messages will be shown.
 pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
@@ -25,6 +26,36 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
                     .into_iter()
                     .map(|line| search_update(line, Some(&client), &verbose))
                     .collect();
+                let chapters = try_join_all(chapters_future).await.unwrap();
+                if verbose {
+                    println!("{} chapters retrieved.", chapters.len());
+                }
+                match update_csv(&path, chapters) {
+                    Ok(_) => dark_green_ln!(
+                        "All the mangas have been updated to their most recent chapter."
+                    ),
+                    Err(e) => eprintln!("{}", e),
+                }
+            } else if url.contains(' ') {
+                if verbose {
+                    println!("Trying to parse all the numbers in ({})", url);
+                }
+                let client = create_client().unwrap();
+                let numbers: Vec<Result<usize, ParseIntError>> = url.split(' ').map(|n| n.parse::<usize>()).collect();
+
+                let chapters_future: Vec<_> = numbers
+                    .into_iter()
+                    .map(|n| if n.is_ok() {
+                        if let Some(line) = lines.get(n.unwrap() - 1) {
+                            Some(line.clone())
+                        } else {
+                            None
+                        }
+                    } else {None})
+                    .flatten()
+                    .map(|line| search_update(line, Some(&client), &verbose))
+                    .collect();
+
                 let chapters = try_join_all(chapters_future).await.unwrap();
                 if verbose {
                     println!("{} chapters retrieved.", chapters.len());
