@@ -8,6 +8,13 @@ use reqwest::Client;
 use std::num::ParseIntError;
 use std::path::PathBuf;
 
+/// Searches for all updates in the csv file.
+/// # Arguments
+/// * `client`: the reqwest client to send requests with.
+/// * `lines`: the original CSV lines
+/// * `verbose`: The verbose option.
+/// # Returns
+/// An option containing the list of CSV lines to update the file.
 async fn update_all(client: Client, lines: Vec<CSVLine>, verbose: bool) -> Option<Vec<CSVLine>> {
     if verbose {
         println!("Client created, fetching the chapters asynchronously...");
@@ -23,17 +30,27 @@ async fn update_all(client: Client, lines: Vec<CSVLine>, verbose: bool) -> Optio
     Some(chapters)
 }
 
+/// Parses the given input and updates the selected lines.
+/// # Arguments
+/// * `client`: the reqwest client to send requests with.
+/// * `input_numbers`: the string containing the numbers to update separated by a space.
+/// * `lines`: the original CSV lines
+/// * `verbose`: The verbose option.
+/// # Returns
+/// An option containing the list of CSV lines to update the file.
 async fn update_multiple(
     client: Client,
-    url: &str,
+    imput_numbers: &str,
     lines: Vec<CSVLine>,
     verbose: bool,
 ) -> Option<Vec<CSVLine>> {
     if verbose {
-        println!("Trying to parse all the numbers in ({})", url);
+        println!("Trying to parse all the numbers in ({})", imput_numbers);
     }
-    let numbers: Vec<Result<usize, ParseIntError>> =
-        url.split(' ').map(|n| n.parse::<usize>()).collect();
+    let numbers: Vec<Result<usize, ParseIntError>> = imput_numbers
+        .split(' ')
+        .map(|n| n.parse::<usize>())
+        .collect();
 
     let chapters_future: Vec<_> = numbers
         .into_iter()
@@ -59,6 +76,14 @@ async fn update_multiple(
     Some(update_chapters_multiple(lines, chapters))
 }
 
+/// Parses the given input and updates the selected line.
+/// # Arguments
+/// * `client`: the reqwest client to send requests with.
+/// * `input_numbers`: the string containing the numbers to update separated by a space.
+/// * `lines`: the original CSV lines
+/// * `verbose`: The verbose option.
+/// # Returns
+/// An option containing the list of CSV lines to update the file.
 async fn update_one(
     client: Client,
     url: &str,
@@ -99,7 +124,11 @@ async fn update_one(
     }
 }
 
-fn upd_csv(path: &Option<PathBuf>, values: Option<Vec<CSVLine>>) {
+/// Updates the CSV with the new values.
+/// # Arguments
+/// * `path`: The optional path to the CSV.
+/// * `values`: The values to overwrite the CSV with.
+fn update_csv_with_values(path: &Option<PathBuf>, values: Option<Vec<CSVLine>>) {
     match values {
         Some(val) => match update_csv(&path, val) {
             Ok(_) => {
@@ -147,5 +176,5 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
             None
         }
     };
-    upd_csv(&path, chapters)
+    update_csv_with_values(&path, chapters)
 }
