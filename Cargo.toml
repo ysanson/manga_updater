@@ -9,12 +9,12 @@ resolver = "2"
 
 [dependencies]
 colour = "0.7.0"
-csv = "1.1.6"
+csv = "1.2.1"
 futures = "0.3.28"
 open = "4.1.0"
-reqwest = { version = "0.11.6" }
+reqwest = { version = "0.11.17" }
 scraper = "0.16.0"
 serial_test = "2.0.0"
-structopt = "0.3.25"
-text_io = "0.1.9"
-tokio = { version = "1.14.0", features = ["full"] }
+structopt = "0.3.26"
+text_io = "0.1.12"
+tokio = { version = "1.28.0", features = ["full"] }

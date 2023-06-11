@@ -4,7 +4,7 @@ pub struct MangaChapter {
     pub manga_title: String,
     pub url: String,
     pub chapter_title: String,
-    pub num: f32
+    pub num: f32,
 }
 
 /// Represents a line of the CSV used by the program.
@@ -19,5 +19,5 @@ pub struct CSVLine {
 #[derive(Debug, Clone)]
 pub struct LineChapter {
     pub line: CSVLine,
-    pub chapter: MangaChapter
+    pub chapter: MangaChapter,
 }
