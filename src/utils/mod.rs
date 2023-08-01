@@ -35,6 +35,25 @@ pub fn update_chapter_in_vec(original: Vec<CSVLine>, updated: CSVLine) -> Vec<CS
         .collect()
 }
 
+/// Updates multiple chapter in the original vec and returns said vec.
+///
+/// # Arguments
+/// * `original`: the original array to update.
+/// * `updated`: the array containing the updates.
+/// # Returns
+/// The vec with the updated values. If the lines arent present, it is unchanged.
+pub fn update_chapters_multiple(original: Vec<CSVLine>, updated: Vec<CSVLine>) -> Vec<CSVLine> {
+    original
+        .into_iter()
+        .map(
+            |elt| match updated.iter().find(|upd_el| upd_el.url == elt.url) {
+                Some(upd_el) => upd_el.clone(),
+                None => elt,
+            },
+        )
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
