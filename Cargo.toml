@@ -1,6 +1,6 @@
 [package]
 name = "manga_updater"
-version = "0.6.10"
+version = "0.7.0"
 authors = ["Yvan Sanson <sansonyvan@gmail.com>"]
 edition = "2021"
 resolver = "2"
@@ -11,9 +11,9 @@ resolver = "2"
 colour = "0.7.0"
 csv = "1.2.1"
 futures = "0.3.28"
-open = "4.1.0"
+open = "5.0.0"
 reqwest = { version = "0.11.17" }
-scraper = "0.16.0"
+scraper = "0.17.1"
 serial_test = "2.0.0"
 structopt = "0.3.26"
 text_io = "0.1.12"
