@@ -1,7 +1,8 @@
 use std::path::PathBuf;
-use crate::file_ops::{read_csv};
+use crate::file_ops::read_csv;
 use crate::scraper::{find_last_chapter, create_client};
 use futures::future::join_all;
+use owo_colors::OwoColorize;
 use crate::models::{CSVLine, LineChapter};
 use text_io::try_read;
 use reqwest::Client;
@@ -34,7 +35,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
             let (mangas, errors): (Vec<_>, Vec<_>) = futures.into_iter().partition(Result::is_ok);
             
             if !errors.is_empty() {
-                dark_yellow_ln!("Some mangas couldn't be reached. Try running again with the -v option.");   
+                println!("{}", "Some mangas couldn't be reached. Try running again with the -v option.".yellow());
             }
 
             if verbose {
@@ -49,7 +50,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
             if !mangas.is_empty() {
                 let chapters: Vec<LineChapter> = mangas.into_iter().map(Result::unwrap).collect();
                 if display_lines(&chapters, &only_new) {
-                    dark_yellow!("Please enter the number of the manga you want to read to open it in the browser : ");
+                    println!("{}", "Please enter the number of the manga you want to read to open it in the browser: ".yellow());
                     let res: Result<usize, _> = try_read!();
                     if let Ok(selected_chapter_index) = res {
                         match chapters.get(selected_chapter_index - 1) {
@@ -92,11 +93,11 @@ fn display_lines(lines: &[LineChapter], only_new: &bool) -> bool {
         if  line_chapter.chapter.num > line_chapter.line.last_chapter_num {
             println!("{}: {}", i+1, line_chapter.chapter.manga_title);
             has_new = true;
-            dark_green_ln!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num, line_chapter.chapter.chapter_title, line_chapter.line.last_chapter_num);
+            println!("There's a new chapter: #{}: {} (Previously was #{})", line_chapter.chapter.num.green(), line_chapter.chapter.chapter_title.green(), line_chapter.line.last_chapter_num.red());
             println!("###################################");
         } else if !only_new {
             println!("{}: {}", i+1, line_chapter.chapter.manga_title);
-            dark_red_ln!("No updates available (Currently on chapter #{})", line_chapter.chapter.num);
+            println!("No updates available (Currently on chapter #{})", line_chapter.chapter.num.green());
             println!("###################################");
         }
     }

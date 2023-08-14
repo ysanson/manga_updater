@@ -13,6 +13,6 @@ pub fn export_data(original_path: Option<PathBuf>, to: Option<PathBuf> ) {
                 Err(e) => eprintln!("An error occured: {}", e)
             }
         },
-        None => dark_red_ln!("Error: no path provided. Usage: export [path]. The file will be created.")
+        None => eprintln!("Error: no path provided. Usage: export [path]. The file will be created.")
     }
 }

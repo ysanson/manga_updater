@@ -1,3 +1,5 @@
+use owo_colors::OwoColorize;
+
 use crate::file_ops::read_csv;
 use crate::file_ops::write_file::update_csv;
 use crate::models::CSVLine;
@@ -23,7 +25,7 @@ pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {
                 }
                 let reset_lines = search_and_reset(&lines, number - 1);
                 match update_csv(&path, reset_lines) {
-                    Ok(_) => dark_green_ln!("The manga has been reset to its previous chapter."),
+                    Ok(_) => println!("{}", "The manga has been reset to its previous chapter.".green()),
                     Err(e) => eprintln!("{}", e),
                 }
             }
