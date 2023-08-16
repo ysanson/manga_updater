@@ -50,7 +50,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
             if !mangas.is_empty() {
                 let chapters: Vec<LineChapter> = mangas.into_iter().map(Result::unwrap).collect();
                 if display_lines(&chapters, &only_new) {
-                    println!("{}", "Please enter the number of the manga you want to read to open it in the browser: ".yellow());
+                    print!("{}", "Please enter the number of the manga you want to read to open it in the browser: ".yellow());
                     let res: Result<usize, _> = try_read!();
                     if let Ok(selected_chapter_index) = res {
                         match chapters.get(selected_chapter_index - 1) {
@@ -65,7 +65,7 @@ pub async fn list_chapters(file_path: Option<PathBuf>, only_new: bool, no_update
                         }
                     }
                 } else {
-                    println!("Nothing new, sadly.")
+                    println!("No new chapters");
                 }
             }
         },
