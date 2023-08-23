@@ -62,24 +62,24 @@ mod tests {
     fn update_chapter_in_vec_test() {
         let mut original: Vec<CSVLine> = Vec::new();
         let line1 = CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 0.0,
-            title: "title1".to_string(),
+            title: "title1".to_owned(),
         };
         let line2 = CSVLine {
-            url: "url2".to_string(),
+            url: "url2".to_owned(),
             last_chapter_num: 1.0,
-            title: "title2".to_string(),
+            title: "title2".to_owned(),
         };
         let line3 = CSVLine {
-            url: "url3".to_string(),
+            url: "url3".to_owned(),
             last_chapter_num: 2.0,
-            title: "title3".to_string(),
+            title: "title3".to_owned(),
         };
         let new_line2 = CSVLine {
-            url: "url2".to_string(),
+            url: "url2".to_owned(),
             last_chapter_num: 3.0,
-            title: "title2".to_string(),
+            title: "title2".to_owned(),
         };
         original.push(line1);
         original.push(line2);

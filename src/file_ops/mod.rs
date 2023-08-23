@@ -62,9 +62,9 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
     for record in reader.records() {
         let rec = record?;
         lines.push(CSVLine {
-            url: String::from(rec.get(0).unwrap()),
+            url: rec.get(0).unwrap().to_owned(),
             last_chapter_num: rec.get(1).unwrap().parse().unwrap(),
-            title: String::from(rec.get(2).unwrap()),
+            title: rec.get(2).unwrap().to_owned(),
         });
     }
     if *verbose {
@@ -98,9 +98,9 @@ mod tests {
         write_file::create_file(&Some(path.clone()))?;
         let mut to_insert: Vec<CSVLine> = Vec::new();
         to_insert.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 0.0,
-            title: "title".to_string(),
+            title: "title".to_owned(),
         });
         write_file::update_csv(&Some(path.clone()), to_insert)?;
         let inserted = read_csv(&Some(path), &true)?;
@@ -119,9 +119,9 @@ mod tests {
         write_file::create_file(&Some(path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 0.0,
-            title: "title".to_string(),
+            title: "title".to_owned(),
         });
         write_file::update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());
