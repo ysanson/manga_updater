@@ -4,6 +4,7 @@ use crate::models::CSVLine;
 use crate::scraper::{create_client, find_last_chapter};
 use crate::utils::{update_chapter_in_vec, update_chapters_multiple};
 use futures::future::try_join_all;
+use owo_colors::OwoColorize;
 use reqwest::Client;
 use std::num::ParseIntError;
 use std::path::PathBuf;
@@ -132,7 +133,7 @@ fn update_csv_with_values(path: &Option<PathBuf>, values: Option<Vec<CSVLine>>) 
     match values {
         Some(val) => match update_csv(&path, val) {
             Ok(_) => {
-                dark_green_ln!("All the mangas have been updated to their most recent chapter.")
+                println!("{}" ,"All the mangas have been updated to their most recent chapter.".green())
             }
             Err(e) => eprintln!("{}", e),
         },

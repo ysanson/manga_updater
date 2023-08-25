@@ -81,9 +81,9 @@ mod tests {
         create_file(&Some(path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 0.0,
-            title: "title".to_string(),
+            title: "title".to_owned(),
         });
         update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());
@@ -104,9 +104,9 @@ mod tests {
         create_file(&Some(path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 0.0,
-            title: "title".to_string(),
+            title: "title".to_owned(),
         });
         update_csv(&Some(path.clone()), new_lines)?;
         assert!(path.exists());

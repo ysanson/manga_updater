@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use crate::file_ops::read_csv;
-use crate::models::{CSVLine};
+use crate::models::CSVLine;
 use crate::scraper::find_last_chapter;
 
 /// Opens a manga in the browser.

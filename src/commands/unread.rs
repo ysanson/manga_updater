@@ -1,3 +1,5 @@
+use owo_colors::OwoColorize;
+
 use crate::file_ops::read_csv;
 use crate::file_ops::write_file::update_csv;
 use crate::models::CSVLine;
@@ -23,7 +25,10 @@ pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {
                 }
                 let reset_lines = search_and_reset(&lines, number - 1);
                 match update_csv(&path, reset_lines) {
-                    Ok(_) => dark_green_ln!("The manga has been reset to its previous chapter."),
+                    Ok(_) => println!(
+                        "{}",
+                        "The manga has been reset to its previous chapter.".green()
+                    ),
                     Err(e) => eprintln!("{}", e),
                 }
             }
@@ -83,17 +88,17 @@ mod tests {
         let line1 = CSVLine {
             url: String::from("Url1"),
             last_chapter_num: 3f32,
-            title: "title1".to_string(),
+            title: "title1".to_owned(),
         };
         let line2 = CSVLine {
             url: String::from("Url2"),
             last_chapter_num: 4f32,
-            title: "title2".to_string(),
+            title: "title2".to_owned(),
         };
         let line3 = CSVLine {
             url: String::from("Url3"),
             last_chapter_num: 5f32,
-            title: "title3".to_string(),
+            title: "title3".to_owned(),
         };
         let mut lines = Vec::new();
         lines.push(line1);
