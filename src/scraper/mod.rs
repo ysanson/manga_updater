@@ -34,20 +34,27 @@ async fn download_page(
 /// An ElementRef pointing to the last chapter available.
 /// # Errors
 /// A custom ScraperError is thrown if a selector cannot be reached.
-fn browse_fragment(fragment: &Html, list_sel: Selector, item_sel: Selector, link_sel: Selector) -> Result<ElementRef, ScraperError> {
+fn browse_fragment(
+    fragment: &Html,
+    list_sel: Selector,
+    item_sel: Selector,
+    link_sel: Selector,
+) -> Result<ElementRef, ScraperError> {
     fragment
         .select(&list_sel)
         .next()
-        .ok_or(ScraperError {reason: "The chapter list is absent.".to_string()})
+        .ok_or(ScraperError {
+            reason: "The chapter list is absent.".to_owned(),
+        })
         .and_then(|ls| {
-            ls.select(&item_sel)
-                .next()
-                .ok_or(ScraperError {reason: "The chapter list is empty".to_string()})
+            ls.select(&item_sel).next().ok_or(ScraperError {
+                reason: "The chapter list is empty".to_owned(),
+            })
         })
         .and_then(|is| {
-            is.select(&link_sel)
-                .next()
-                .ok_or(ScraperError {reason: "The chapter link is unreachable.".to_string()})
+            is.select(&link_sel).next().ok_or(ScraperError {
+                reason: "The chapter link is unreachable.".to_owned(),
+            })
         })
 }
 
@@ -59,7 +66,10 @@ fn browse_fragment(fragment: &Html, list_sel: Selector, item_sel: Selector, link
 /// An ElementRef pointing to the last chapter available.
 /// # Errors
 /// A custom ScraperError is thrown if a selector cannot be reached.
-fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<ElementRef, ScraperError> {
+fn extract_last_chapter_elt_ref(
+    fragment: &Html,
+    verbose: bool,
+) -> Result<ElementRef, ScraperError> {
     let list_selector = Selector::parse("ul.row-content-chapter");
     let item_selector = Selector::parse("li");
     let link_selector = Selector::parse("a");
@@ -69,24 +79,39 @@ fn extract_last_chapter_elt_ref(fragment: &Html, verbose: bool) -> Result<Elemen
                 Ok(link_sel) => browse_fragment(fragment, list_sel, item_sel, link_sel),
                 Err(link_sel_e) => {
                     if verbose {
-                        eprintln!("Error while scraping the chapter link. The error is: {:?}", link_sel_e);
+                        eprintln!(
+                            "Error while scraping the chapter link. The error is: {:?}",
+                            link_sel_e
+                        );
                     }
-                    Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
-                },
+                    Err(ScraperError {
+                        reason: "Selectors couldn't be reached".to_owned(),
+                    })
+                }
             },
             Err(item_sel_e) => {
                 if verbose {
-                    eprintln!("Error while scraping the list item. The error is: {:?}", item_sel_e);
+                    eprintln!(
+                        "Error while scraping the list item. The error is: {:?}",
+                        item_sel_e
+                    );
                 }
-                Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
-            },
+                Err(ScraperError {
+                    reason: "Selectors couldn't be reached".to_owned(),
+                })
+            }
         },
         Err(list_sel_e) => {
             if verbose {
-                eprintln!("Error while scraping the chapter list. The error is: {:?}",list_sel_e);
+                eprintln!(
+                    "Error while scraping the chapter list. The error is: {:?}",
+                    list_sel_e
+                );
             }
-            Err(ScraperError {reason: "Selectors couldn't be reached".to_string()})
-        },    
+            Err(ScraperError {
+                reason: "Selectors couldn't be reached".to_owned(),
+            })
+        }
     }
 }
 
@@ -192,7 +217,7 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string(), true) {
+        match scrape_page_for_last_chapter(page_contents, &"Original title".to_owned(), true) {
             Ok(chapter) => {
                 assert_eq!(
                     chapter.url,
@@ -215,7 +240,7 @@ mod tests {
         let mut directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         directory.push("tests_resources/false_testpage.html");
         let page_contents: String = fs::read_to_string(directory)?;
-        match scrape_page_for_last_chapter(page_contents, &"Original title".to_string(), true) {
+        match scrape_page_for_last_chapter(page_contents, &"Original title".to_owned(), true) {
             Ok(_) => panic!("The method should not return a value in this case"),
             Err(_) => Ok(()),
         }

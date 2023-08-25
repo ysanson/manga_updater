@@ -1,3 +1,5 @@
+use owo_colors::OwoColorize;
+
 use crate::file_ops::read_csv;
 use crate::file_ops::write_file::update_csv;
 use std::path::PathBuf;
@@ -26,7 +28,7 @@ pub fn remove_manga(path: Option<PathBuf>, url: &str, verbose: bool) -> Result<(
     }
     match update_csv(&path, current_lines) {
         Ok(_) => {
-            dark_green_ln!("The manga has been deleted, be aware that the order might have changed.");
+            println!("{}", "The manga has been deleted. Be aware that the order might have changed.".green());
             Ok(())
         },
         Err(e) => Err(e)

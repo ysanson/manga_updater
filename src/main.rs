@@ -3,8 +3,6 @@ mod file_ops;
 mod models;
 mod scraper;
 mod utils;
-#[macro_use]
-extern crate colour;
 
 use structopt::StructOpt;
 use std::path::PathBuf;

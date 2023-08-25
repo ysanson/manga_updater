@@ -74,25 +74,25 @@ mod tests {
     fn test_new_lines_found() {
         let mut imported: Vec<CSVLine> = Vec::new();
         imported.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 1.0,
-            title: "title1".to_string(),
+            title: "title1".to_owned(),
         });
         imported.push(CSVLine {
-            url: "url2".to_string(),
+            url: "url2".to_owned(),
             last_chapter_num: 2.0,
-            title: "title2".to_string(),
+            title: "title2".to_owned(),
         });
         let mut current: Vec<CSVLine> = Vec::new();
         current.push(CSVLine {
-            url: "url1".to_string(),
+            url: "url1".to_owned(),
             last_chapter_num: 1.0,
-            title: "title1".to_string(),
+            title: "title1".to_owned(),
         });
         current.push(CSVLine {
-            url: "url3".to_string(),
+            url: "url3".to_owned(),
             last_chapter_num: 3.0,
-            title: "title3".to_string(),
+            title: "title3".to_owned(),
         });
         assert_eq!(imported.get(0), current.get(0));
         let result = find_new_lines(imported.clone(), current.clone());
