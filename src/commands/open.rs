@@ -1,7 +1,7 @@
-use std::path::PathBuf;
 use crate::file_ops::read_csv;
 use crate::models::CSVLine;
 use crate::scraper::find_last_chapter;
+use std::path::PathBuf;
 
 /// Opens a manga in the browser.
 /// # Arguments
@@ -10,7 +10,7 @@ use crate::scraper::find_last_chapter;
 /// * `direct`: if true, the last chapter from the manga will be open.
 /// * `verbose`: if true, more messages will be shown.
 pub async fn open_manga(path: Option<PathBuf>, url: &str, direct: bool, verbose: bool) {
-    match read_csv(&path, &verbose) {
+    match read_csv(path.as_ref(), &verbose) {
         Ok(lines) => {
             if verbose {
                 println!("Fetched {} lines in the CSV", lines.len());
@@ -27,8 +27,8 @@ pub async fn open_manga(path: Option<PathBuf>, url: &str, direct: bool, verbose:
                     extract(by_url.as_ref(), direct, "The URL you asked for is not present.", &verbose).await
                 }
             }
-        },
-        Err(e) => eprintln!("An error occurred! {}", e)
+        }
+        Err(e) => eprintln!("An error occurred! {}", e),
     }
 }
 
@@ -44,11 +44,13 @@ async fn extract(line: Option<&CSVLine>, direct: bool, error_message: &str, verb
             if direct {
                 match find_last_chapter(l.url.as_str(), None, verbose).await {
                     Ok(manga) => open(manga.url.as_str()),
-                    Err(e) => eprintln!("Error while fetching the last chapter: {}", e)
+                    Err(e) => eprintln!("Error while fetching the last chapter: {}", e),
                 }
-            } else { open(&l.url) }
-        },
-        None => println!("{}", error_message)
+            } else {
+                open(&l.url)
+            }
+        }
+        None => println!("{}", error_message),
     }
 }
 
@@ -57,4 +59,3 @@ fn open(url: &str) {
         eprintln!("Error while opening the URL.");
     }
 }
-

@@ -4,51 +4,77 @@ mod models;
 mod scraper;
 mod utils;
 
-use structopt::StructOpt;
+use crate::commands::{add, export, import, init, list, open, remove, undo, unread, update};
 use std::path::PathBuf;
-use crate::commands::{list, init, add, update, export, import, remove, open, unread, undo};
+use structopt::StructOpt;
 
 /// The CLI struct to store the different commands and parameters used by the app.
 #[derive(Debug, StructOpt)]
-#[structopt(name = "Manga updater", about = "A CLI tool to show updated manga chapters.")]
+#[structopt(
+    name = "Manga updater",
+    about = "A CLI tool to show updated manga chapters."
+)]
 struct Cli {
     //The command can be list, add [url], remove [url], update [url/all] (coming soon)
     //By default, it takes nothing to return the last chapters of the stored mangas.
-    #[structopt(default_value="list",
-    help="Available commands: list, add [url], remove [url], export [-e path], import [-e path], update [url/all], open [url/line number], restore. For more info, refer to the doc.")]
+    #[structopt(
+        default_value = "list",
+        help = "Available commands: list, add [url], remove [url], export [-e path], import [-e path], update [url/all], open [url/line number], restore. For more info, refer to the doc."
+    )]
     command: String,
 
     //The URL to the manga to add / remove. Can be [all] in the case of update.
-    #[structopt(help="The URL to the manga page on manganelo. Can be all for update, or a line number.")]
+    #[structopt(
+        help = "The URL to the manga page on manganelo. Can be all for update, or a line number."
+    )]
     argument: Option<String>,
 
     //A path is optional (used mainly for debug purposes), and indicates the file containing the URLs.
-    #[structopt(short = "p", long = "path", parse(from_os_str),
-    help="The path to the CSV file to use. Overrides default.")]
+    #[structopt(
+        short = "p",
+        long = "path",
+        parse(from_os_str),
+        help = "The path to the CSV file to use. Overrides default."
+    )]
     path: Option<PathBuf>,
 
     //The path to export the CSV file to, or import from.
-    #[structopt(short = "e", long = "external", parse(from_os_str),
-    help="The path to export/import a CSV file from the application.")]
+    #[structopt(
+        short = "e",
+        long = "external",
+        parse(from_os_str),
+        help = "The path to export/import a CSV file from the application."
+    )]
     external_file: Option<PathBuf>,
 
     //If set, opens the last chapter directly.
-    #[structopt(short="d", long="direct", help="Open the last chapter directly.")]
+    #[structopt(short = "d", long = "direct", help = "Open the last chapter directly.")]
     direct: bool,
 
     //If set, displays only new chapters in the output.
-    #[structopt(short="n", long="new", help="Display only new chapters.")]
+    #[structopt(short = "n", long = "new", help = "Display only new chapters.")]
     new: bool,
 
-    #[structopt(short="o", long="overwrite",
-    help="Specifies if the current database must be overwritten. Usable only with import command.")]
+    #[structopt(
+        short = "o",
+        long = "overwrite",
+        help = "Specifies if the current database must be overwritten. Usable only with import command."
+    )]
     overwrite: bool,
 
-    #[structopt(short="v", long="verbose", help="Be more verbose about the process.")]
+    #[structopt(
+        short = "v",
+        long = "verbose",
+        help = "Be more verbose about the process."
+    )]
     verbose: bool,
 
-    #[structopt(short = "u", long="no-update", help="Will not update the opened manga.")]
-    no_update: bool
+    #[structopt(
+        short = "u",
+        long = "no-update",
+        help = "Will not update the opened manga."
+    )]
+    no_update: bool,
 }
 
 /// Entry point of the application.
@@ -67,8 +93,6 @@ async fn main() {
         "open" => open(args.path, args.argument, args.direct, args.verbose).await,
         "unread" => unread(args.path, args.argument, args.verbose),
         "undo" => undo(args.path, args.verbose),
-        _ => println!("Argument out of range. Try running --h or -h.")
+        _ => println!("Argument out of range. Try running --h or -h."),
     }
-    
-
 }

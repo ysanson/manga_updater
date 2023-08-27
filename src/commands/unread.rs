@@ -11,7 +11,7 @@ use std::path::PathBuf;
 /// * `url`: The line number of the manga to reset.
 /// * `verbose`: if true, more messages will be shown.
 pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {
-    match read_csv(&path, &verbose) {
+    match read_csv(path.as_ref(), &verbose) {
         Ok(lines) => {
             if verbose {
                 println!(
@@ -24,7 +24,7 @@ pub fn unread_chapter(path: Option<PathBuf>, url: &str, verbose: bool) {
                     println!("Resetting chapter at position {}", number);
                 }
                 let reset_lines = search_and_reset(&lines, number - 1);
-                match update_csv(&path, reset_lines) {
+                match update_csv(path.as_ref(), reset_lines) {
                     Ok(_) => println!(
                         "{}",
                         "The manga has been reset to its previous chapter.".green()

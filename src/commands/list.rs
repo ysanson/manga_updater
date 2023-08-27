@@ -26,7 +26,7 @@ pub async fn list_chapters(
     no_update: bool,
     verbose: bool,
 ) {
-    match read_csv(&file_path, &verbose) {
+    match read_csv(file_path.as_ref(), &verbose) {
         Ok(lines) => {
             let client = create_client().unwrap();
             if verbose {

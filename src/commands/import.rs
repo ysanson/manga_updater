@@ -23,19 +23,19 @@ pub fn import_file(
 ) -> Result<bool, io::Error> {
     match from {
         Some(from_path) => {
-            let imported_lines = read_csv(&Some(from_path), &verbose)?;
+            let imported_lines = read_csv(Some(&from_path), &verbose)?;
             if overwrite {
                 if verbose {
                     println!("Overwrite is set, the old lines will be deleted.");
                 }
-                update_csv(&to, imported_lines)?;
+                update_csv(to.as_ref(), imported_lines)?;
             } else {
-                let current_lines = read_csv(&to, &verbose)?;
+                let current_lines = read_csv(to.as_ref(), &verbose)?;
                 let update = find_new_lines(imported_lines, current_lines);
                 if verbose {
                     println!("This will add {} new lines to the CSV.", update.len());
                 }
-                update_csv(&to, update)?;
+                update_csv(to.as_ref(), update)?;
             }
             Ok(true)
         }

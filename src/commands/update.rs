@@ -129,11 +129,14 @@ async fn update_one(
 /// # Arguments
 /// * `path`: The optional path to the CSV.
 /// * `values`: The values to overwrite the CSV with.
-fn update_csv_with_values(path: &Option<PathBuf>, values: Option<Vec<CSVLine>>) {
+fn update_csv_with_values(path: Option<&PathBuf>, values: Option<Vec<CSVLine>>) {
     match values {
-        Some(val) => match update_csv(&path, val) {
+        Some(val) => match update_csv(path, val) {
             Ok(_) => {
-                println!("{}" ,"All the mangas have been updated to their most recent chapter.".green())
+                println!(
+                    "{}",
+                    "All the mangas have been updated to their most recent chapter.".green()
+                )
             }
             Err(e) => eprintln!("{}", e),
         },
@@ -168,7 +171,7 @@ async fn search_update(
 /// * `verbose`: if true, more messages will be shown.
 pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
     let client = create_client().unwrap();
-    let chapters = match read_csv(&path, &verbose) {
+    let chapters = match read_csv(path.as_ref(), &verbose) {
         Ok(lines) if url.eq("all") => update_all(client, lines, verbose).await,
         Ok(lines) if url.contains(' ') => update_multiple(client, url, lines, verbose).await,
         Ok(lines) => update_one(client, url, lines, verbose).await,
@@ -177,5 +180,5 @@ pub async fn update_chapters(path: Option<PathBuf>, url: &str, verbose: bool) {
             None
         }
     };
-    update_csv_with_values(&path, chapters)
+    update_csv_with_values(path.as_ref(), chapters)
 }

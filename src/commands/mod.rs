@@ -55,7 +55,7 @@ pub async fn add(path: Option<PathBuf>, manga_url: Option<String>, verbose: bool
 /// # Argument
 /// * `file_path`: the optional path to the CSV file.
 pub fn init(path: Option<PathBuf>) {
-    match create_file(&path) {
+    match create_file(path.as_ref()) {
         Ok(_) => println!("The file has been created, the program is ready to use."),
         Err(e) => println!("Error creating the file: {}", e),
     }

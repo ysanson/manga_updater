@@ -15,26 +15,28 @@ use std::path::PathBuf;
 /// * `file_path`: the optional file path, if a custom CSV location is used.
 /// # Returns:
 /// The path to the CSV file, be it custom or default.
-fn extract_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
-    if file_path.is_some() {
-        file_path.clone().unwrap()
-    } else {
-        let mut exe = current_exe().unwrap();
-        exe.pop();
-        exe.push("mangas.csv");
-        exe
-    }
+fn extract_path_or_default(file_path: Option<&PathBuf>) -> PathBuf {
+    file_path.map_or_else(
+        || {
+            let mut exe = current_exe().unwrap();
+            exe.pop();
+            exe.push("mangas.csv");
+            exe
+        },
+        |path| path.into(),
+    )
 }
 
-fn extract_restore_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
-    if file_path.is_some() {
-        file_path.clone().unwrap()
-    } else {
-        let mut exe = current_exe().unwrap();
-        exe.pop();
-        exe.push("mangas.csv.bak");
-        exe
-    }
+fn extract_restore_path_or_default(file_path: Option<&PathBuf>) -> PathBuf {
+    file_path.map_or_else(
+        || {
+            let mut exe = current_exe().unwrap();
+            exe.pop();
+            exe.push("mangas.csv.bak");
+            exe
+        },
+        |path| path.into(),
+    )
 }
 
 /// Reads the CSV file and returns the lines stored inside.
@@ -45,7 +47,7 @@ fn extract_restore_path_or_default(file_path: &Option<PathBuf>) -> PathBuf {
 /// * `verbose`: if true, more messages will be shown.
 /// # Returns:
 /// A Vec containing the lines stored in the CSV.
-pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLine>, io::Error> {
+pub fn read_csv(file_path: Option<&PathBuf>, verbose: &bool) -> Result<Vec<CSVLine>, io::Error> {
     if *verbose {
         println!("Beginning processing the CSV at {:?}", file_path);
     }
@@ -81,7 +83,7 @@ pub fn read_csv(file_path: &Option<PathBuf>, verbose: &bool) -> Result<Vec<CSVLi
 /// # Returns:
 /// True if the URl has been found in the file's content, false otherwise.
 pub fn is_url_present(file_path: Option<PathBuf>, url: &str) -> Result<bool, io::Error> {
-    let path = extract_path_or_default(&file_path);
+    let path = extract_path_or_default(file_path.as_ref());
     let contents = fs::read_to_string(path)?;
     Ok(contents.contains(url))
 }
@@ -95,15 +97,15 @@ mod tests {
     #[serial]
     fn test_read_csv() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        write_file::create_file(&Some(path.clone()))?;
+        write_file::create_file(Some(&path.clone()))?;
         let mut to_insert: Vec<CSVLine> = Vec::new();
         to_insert.push(CSVLine {
             url: "url1".to_owned(),
             last_chapter_num: 0.0,
             title: "title".to_owned(),
         });
-        write_file::update_csv(&Some(path.clone()), to_insert)?;
-        let inserted = read_csv(&Some(path), &true)?;
+        write_file::update_csv(Some(&path.clone()), to_insert)?;
+        let inserted = read_csv(Some(&path), &true)?;
         assert_eq!(inserted.len(), 1);
         assert_eq!(inserted.get(0).unwrap().url, "url1");
         assert_eq!(inserted.get(0).unwrap().last_chapter_num, 0.0);
@@ -116,14 +118,14 @@ mod tests {
     #[serial]
     fn test_is_url_present() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        write_file::create_file(&Some(path.clone()))?;
+        write_file::create_file(Some(&path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
             url: "url1".to_owned(),
             last_chapter_num: 0.0,
             title: "title".to_owned(),
         });
-        write_file::update_csv(&Some(path.clone()), new_lines)?;
+        write_file::update_csv(Some(&path.clone()), new_lines)?;
         assert!(path.exists());
         let is_url_present = is_url_present(Some(path), "url1")?;
         assert!(is_url_present);

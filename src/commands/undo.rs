@@ -6,8 +6,8 @@ use std::path::PathBuf;
 /// * `path`: The path to restore from. If empty, a default path will be used.
 /// * `verbose`: If set, the command will be a little more verbose.
 pub fn restore_csv(path: Option<PathBuf>, verbose: bool) {
-    match restore_file(&path, &verbose) {
+    match restore_file(path.as_ref(), &verbose) {
         Ok(()) => println!("The CSV has been restored to the previous state."),
-        Err(e) => eprintln!("An error happened: {:?}", e)
+        Err(e) => eprintln!("An error happened: {:?}", e),
     }
 }

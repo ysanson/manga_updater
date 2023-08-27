@@ -14,7 +14,7 @@ use std::path::PathBuf;
 /// * `values`: the lines to write in the new CSV.
 /// # Returns:
 /// Ok if everything went well.
-pub fn update_csv(file_path: &Option<PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
+pub fn update_csv(file_path: Option<&PathBuf>, values: Vec<CSVLine>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     backup_file(Some(path.clone()))?;
     create_file(file_path)?;
@@ -42,7 +42,7 @@ pub fn append_to_file(
     last_chapter: f32,
     title: &str,
 ) -> Result<(), io::Error> {
-    let path = extract_path_or_default(&file_path);
+    let path = extract_path_or_default(file_path.as_ref());
     let file = OpenOptions::new().append(true).open(path.clone())?;
     let mut writer = Writer::from_writer(file);
     backup_file(Some(path))?;
@@ -57,7 +57,7 @@ pub fn append_to_file(
 /// * `file_path`: the optional file path, if a custom CSV location is used.
 /// # Returns:
 /// Ok if everything went well.
-pub fn create_file(file_path: &Option<PathBuf>) -> Result<(), io::Error> {
+pub fn create_file(file_path: Option<&PathBuf>) -> Result<(), io::Error> {
     let path = extract_path_or_default(file_path);
     let mut wtr = Writer::from_path(path)?;
     wtr.write_record(&["URL", "Last chapter", "Title"])?;
@@ -77,7 +77,7 @@ pub fn export_file(
     origin_path: Option<PathBuf>,
     out_path: &mut PathBuf,
 ) -> Result<&PathBuf, io::Error> {
-    let path = extract_path_or_default(&origin_path);
+    let path = extract_path_or_default(origin_path.as_ref());
     out_path.push("mangas.csv");
     fs::copy(path, &out_path)?;
     Ok(out_path)
@@ -95,9 +95,9 @@ mod tests {
     #[serial]
     fn test_append_to_file() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        create_file(&Some(path.clone()))?;
+        create_file(Some(&path.clone()))?;
         append_to_file(Some(path.clone()), "url1", 0.0, "title")?;
-        let contents = read_csv(&Some(path), &true)?;
+        let contents = read_csv(Some(&path), &true)?;
         assert_eq!(contents.len(), 1);
         assert_eq!(contents.get(0).unwrap().url, "url1");
         assert_eq!(contents.get(0).unwrap().last_chapter_num, 0.0, "title");
@@ -110,7 +110,7 @@ mod tests {
     #[serial]
     fn test_create_file() -> Result<(), io::Error> {
         let path = PathBuf::from("mangas.csv");
-        create_file(&Some(path.clone()))?;
+        create_file(Some(&path.clone()))?;
         assert!(path.exists());
         let contents = fs::read_to_string(&path)?;
         assert!(contents.starts_with("URL,Last chapter,Title"));
@@ -130,21 +130,21 @@ mod tests {
     fn test_export_file() -> Result<(), io::Error> {
         remove_test_dir()?;
         let path = PathBuf::from("mangas.csv");
-        create_file(&Some(path.clone()))?;
+        create_file(Some(&path.clone()))?;
         let mut new_lines: Vec<CSVLine> = Vec::new();
         new_lines.push(CSVLine {
             url: "url1".to_owned(),
             last_chapter_num: 0.0,
             title: "title".to_owned(),
         });
-        update_csv(&Some(path.clone()), new_lines)?;
+        update_csv(Some(&path.clone()), new_lines)?;
         assert!(path.exists());
 
         let mut temp_folder = PathBuf::from("testDir");
         fs::create_dir(temp_folder.clone())?;
         export_file(Some(path), &mut temp_folder)?;
         assert!(temp_folder.exists());
-        let new_file_contents = read_csv(&Some(temp_folder), &true)?;
+        let new_file_contents = read_csv(Some(&temp_folder), &true)?;
         assert_eq!(new_file_contents.len(), 1);
         assert_eq!(new_file_contents.get(0).unwrap().url, "url1");
         fs::remove_file("mangas.csv")?;
